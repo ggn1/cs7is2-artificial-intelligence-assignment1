@@ -9,9 +9,11 @@ def track_time(solver):
         this function.
     '''
     def wrapper(*args, **kwargs):
-        time_start = time.time() # start monitoring
-        path = solver(*args, **kwargs)
-        seconds = time.time() - time_start # stop tracking memory usage
-        return path, seconds
+        time_start = time.time() # keep track of time
+        res = solver(*args, **kwargs)
+        # Add executing time in seconds to the result 
+        # that is to be returned.
+        res['seconds'] = time.time() - time_start 
+        return res
     
     return wrapper

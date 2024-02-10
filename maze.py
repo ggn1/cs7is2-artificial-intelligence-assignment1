@@ -48,8 +48,8 @@ def draw_maze(maze, save_dir='', save_filename='', save_animation=False, path=No
     fig.patch.set_linewidth(0)
 
     ax.imshow(maze, cmap=plt.cm.binary, interpolation='nearest')
-    ax.set_xticks([])
-    ax.set_yticks([])
+    ax.set_xticks([i for i in range(maze.shape[0])] if maze.shape[0] <= 21 else [])
+    ax.set_yticks([i for i in range(maze.shape[1])] if maze.shape[0] <= 21 else [])
     
     # Prepare for path animation
     if path is not None:
@@ -65,7 +65,10 @@ def draw_maze(maze, save_dir='', save_filename='', save_animation=False, path=No
             line.set_data(*zip(*[(p[1], p[0]) for p in path[:frame+1]]))  # update the data
             return line,
         
-        ani = animation.FuncAnimation(fig, update, frames=range(len(path)), init_func=init, blit=True, repeat = False, interval=20)
+        ani = animation.FuncAnimation(
+            fig, update, frames=range(len(path)), init_func=init, 
+            blit=True, repeat = False, interval=20
+        )
     
     # Draw entry and exit arrows
     ax.arrow(0, 1, .4, 0, fc='green', ec='green', head_width=0.3, head_length=0.3)

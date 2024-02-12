@@ -1,8 +1,6 @@
-import random
-import numpy as np
 from queue import LifoQueue
 from track_time import track_time
-from maze import create_maze, draw_maze, load_maze
+from maze import draw_maze, load_maze
 
 @track_time
 def dfs(maze):

@@ -68,20 +68,20 @@ def handle_result(res, maze_shape):
 
 # Perform Depth First Search (DFS).
 
-# SMALL MAZE
-maze_s, goal_s = load_maze(path='./mazes/s_dim21.json')
-maze = maze_s
-res = dfs(maze, goal_s)
-handle_result(res, maze.shape)
+# # SMALL MAZE
+# maze_s, goal_s = load_maze(path='./mazes/s_dim21.json')
+# maze = maze_s
+# res = dfs(maze, goal_s)
+# handle_result(res, maze.shape)
 
-# MEDIUM MAZE
-maze_m, goal_m = load_maze(path='./mazes/m_dim41.json')
-maze = maze_m
-res = dfs(maze, goal_m)
-handle_result(res, maze.shape)
+# # MEDIUM MAZE
+# maze_m, goal_m = load_maze(path='./mazes/m_dim41.json')
+# maze = maze_m
+# res = dfs(maze, goal_m)
+# handle_result(res, maze.shape)
 
-# LARGE MAZE
-maze_l, goal_l = load_maze(path='./mazes/l_dim101.json')
-maze = maze_l
-res = dfs(maze, goal_l)
-handle_result(res, maze.shape)
+# # LARGE MAZE
+# maze_l, goal_l = load_maze(path='./mazes/l_dim101.json')
+# maze = maze_l
+# res = dfs(maze, goal_l)
+# handle_result(res, maze.shape)

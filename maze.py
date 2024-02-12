@@ -60,29 +60,46 @@ def draw_maze(maze, save_dir='', save_filename='', save_animation=False, path=No
     ax.imshow(maze, interpolation='nearest')
     ax.set_xticks([])
     ax.set_yticks([])
+
+    scatter = None 
     
     # Prepare for path animation
     if path is not None:
-        line, = ax.plot([], [], color='red', linewidth=2)
+        # line, = ax.plot([], [], color='red', linewidth=2)
         
+        # def init():
+        #     line.set_data([], [])
+        #     return line,
+        
+        # # update is called for each path point in the maze
+        # def update(frame):
+        #     x, y = path[frame]
+        #     line.set_data(*zip(*[(p[1], p[0]) for p in path[:frame+1]]))  # update the data
+        #     return line,
+        
+        # ani = animation.FuncAnimation(
+        #     fig, update, frames=range(len(path)), init_func=init, 
+        #     blit=True, repeat = False, interval=1
+        # )
+
         def init():
-            line.set_data([], [])
-            return line,
+            nonlocal scatter
+            scatter = ax.scatter([], [], marker='o', color='w', s=2)
+            return scatter,
         
         # update is called for each path point in the maze
         def update(frame):
-            x, y = path[frame]
-            line.set_data(*zip(*[(p[1], p[0]) for p in path[:frame+1]]))  # update the data
-            return line,
-        
+            nonlocal scatter
+            # y, x = path[frame]
+            x = [p[1] for p in path[:frame+1]]
+            y = [p[0] for p in path[:frame+1]]
+            scatter.set_offsets(np.column_stack([x, y]))  # Update scatter plot data
+            return scatter,
+
         ani = animation.FuncAnimation(
-            fig, update, frames=range(len(path)), init_func=init, 
-            blit=True, repeat = False, interval=20
+            fig, update, frames = range(len(path)), init_func = init, 
+            repeat = False, interval=1, cache_frame_data=False, blit=True
         )
-    
-    # # Draw entry and exit arrows
-    # ax.arrow(0, 1, .4, 0, fc='green', ec='green', head_width=0.3, head_length=0.3)
-    # ax.arrow(maze.shape[1]-1, maze.shape[0]-2, 0.4, 0, fc='blue', ec='blue', head_width=0.3, head_length=0.3)
 
     plt.show()
 

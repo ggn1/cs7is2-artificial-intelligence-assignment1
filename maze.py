@@ -6,16 +6,23 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
+# wall = 0
+# space = 1
+# start = 3
+# goal = 2
+
 def create_maze(dim):
-    # Create a grid filled with walls
-    maze = np.ones((dim*2+1, dim*2+1))
+    # wall = 0
+    # space = 1
+
+    # Create a grid filled with walls only.
+    maze = np.zeros((dim*2+1, dim*2+1))
 
     # Define the starting point
-    x, y = (0, 0)
-    maze[2*x+1, 2*y+1] = 0
+    start = (1, 1)
 
     # Initialize the stack with the starting point
-    stack = [(x, y)]
+    stack = [start]
     while len(stack) > 0:
         x, y = stack[-1]
 
@@ -25,19 +32,22 @@ def create_maze(dim):
 
         for dx, dy in directions:
             nx, ny = x + dx, y + dy
-            if nx >= 0 and ny >= 0 and nx < dim and ny < dim and maze[2*nx+1, 2*ny+1] == 1:
-                maze[2*nx+1, 2*ny+1] = 0
-                maze[2*x+1+dx, 2*y+1+dy] = 0
+            if nx >= 0 and ny >= 0 and nx < dim and ny < dim and maze[2*nx+1, 2*ny+1] == 0:
+                maze[2*nx+1, 2*ny+1] = 1
+                maze[2*x+1+dx, 2*y+1+dy] = 1
                 stack.append((nx, ny))
                 break
         else:
             stack.pop()
             
     # Create an entrance and an exit
-    maze[1, 0] = 0
-    maze[-2, -1] = 0
+    goal = (random.randint(2, 2*dim), random.randint(2, 2*dim))
+    while(maze[goal] == 0):
+        goal = (random.randint(2, 2*dim), random.randint(2, 2*dim))
+    maze[start] = 3 # start = 3
+    maze[goal] = 2 # goal = 2
 
-    return maze
+    return maze, goal
 
 #... animate the path through the maze ...
 def draw_maze(maze, save_dir='', save_filename='', save_animation=False, path=None):
@@ -47,9 +57,9 @@ def draw_maze(maze, save_dir='', save_filename='', save_animation=False, path=No
     fig.patch.set_edgecolor('white')
     fig.patch.set_linewidth(0)
 
-    ax.imshow(maze, cmap=plt.cm.binary, interpolation='nearest')
-    ax.set_xticks([i for i in range(maze.shape[0])] if maze.shape[0] <= 21 else [])
-    ax.set_yticks([i for i in range(maze.shape[1])] if maze.shape[0] <= 21 else [])
+    ax.imshow(maze, interpolation='nearest')
+    ax.set_xticks([])
+    ax.set_yticks([])
     
     # Prepare for path animation
     if path is not None:
@@ -70,9 +80,9 @@ def draw_maze(maze, save_dir='', save_filename='', save_animation=False, path=No
             blit=True, repeat = False, interval=20
         )
     
-    # Draw entry and exit arrows
-    ax.arrow(0, 1, .4, 0, fc='green', ec='green', head_width=0.3, head_length=0.3)
-    ax.arrow(maze.shape[1]-1, maze.shape[0]-2, 0.4, 0, fc='blue', ec='blue', head_width=0.3, head_length=0.3)
+    # # Draw entry and exit arrows
+    # ax.arrow(0, 1, .4, 0, fc='green', ec='green', head_width=0.3, head_length=0.3)
+    # ax.arrow(maze.shape[1]-1, maze.shape[0]-2, 0.4, 0, fc='blue', ec='blue', head_width=0.3, head_length=0.3)
 
     plt.show()
 
@@ -83,15 +93,11 @@ def draw_maze(maze, save_dir='', save_filename='', save_animation=False, path=No
         if save_animation: ani.save(f'{save_dir}/{save_filename}.gif', writer="pillow")
 
 # OWN CODE
-def save_maze(maze, dir, filename):
+def save_maze(maze, goal, dir, filename):
     ''' Saves given maze in a json file with the 
         given name in the given directory. 
     '''
-    if (
-        len(filename) <= 5 or 
-        filename[-5:] != '.json'
-    ): filename += '.json'
-    with open(f'{dir}/{filename}', 'w') as f:
+    with open(f'{dir}/{filename}_dim{len(maze)}.json', 'w') as f:
         json.dump(maze.tolist(), f)
 
 # OWN CODE
@@ -101,4 +107,10 @@ def load_maze(path):
     '''
     with open(path, 'r') as f:
        maze = np.array(json.load(f))
-    return maze
+    goal = (-1, -1)
+    for i in range(0, maze.shape[0]):
+        for j in range(0, maze.shape[1]):
+            if maze[i, j] == 2: 
+                goal = (i, j)
+                break
+    return maze, goal

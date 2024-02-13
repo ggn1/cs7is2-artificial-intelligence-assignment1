@@ -49,39 +49,41 @@ def dfs(maze, goal):
     path.reverse()  # Reverse the path to get it from start to goal
     return {
         'path': path, # Return path.
+        'exploration': visited, # All the nodes that were visited.
         'num_nodes_traversed': len(set(visited)), # Return no. of nodes traversed.
         'num_dead_ends': num_dead_ends # Return no. of dead ends encountered.
     } 
 
-def handle_result(res, maze_shape):
+def handle_result(res, maze):
     ''' Displays path animation and prints 
         given run result for a maze of given shape. 
     '''
     draw_maze(
-        maze=maze, path=res['path'], save_dir=f'./solutions', 
-        save_filename=f'dfs_maze{maze_shape[0]}', save_animation=False
+        maze=maze, path=res['path'], exploration=res['exploration'],
+        save_dir=f'./solutions', save_filename=f'dfs_maze{maze.shape[0]}', 
+        save_animation=False
     )
-    print(f"\nMAZE ({maze_shape[0]} x {maze_shape[1]}):")
+    print(f"\nMAZE ({maze.shape[0]} x {maze.shape[1]}):")
     print(f"Execution time = {res['seconds']} seconds")
     print(f"No. of dead ends = {res['num_dead_ends']}")
-    print(f"No. of nodes traversed = {res['num_nodes_traversed']}/{maze_shape[0]*maze_shape[1]}")
+    print(f"No. of nodes traversed = {res['num_nodes_traversed']}/{maze.shape[0]*maze.shape[1]}")
 
 # Perform Depth First Search (DFS).
 
-# # SMALL MAZE
-# maze_s, goal_s = load_maze(path='./mazes/s_dim21.json')
-# maze = maze_s
-# res = dfs(maze, goal_s)
-# handle_result(res, maze.shape)
+# SMALL MAZE
+maze_s, goal_s = load_maze(path='./mazes/s_dim21.json')
+maze = maze_s
+res = dfs(maze, goal_s)
+handle_result(res, maze)
 
-# # MEDIUM MAZE
-# maze_m, goal_m = load_maze(path='./mazes/m_dim41.json')
-# maze = maze_m
-# res = dfs(maze, goal_m)
-# handle_result(res, maze.shape)
+# MEDIUM MAZE
+maze_m, goal_m = load_maze(path='./mazes/m_dim41.json')
+maze = maze_m
+res = dfs(maze, goal_m)
+handle_result(res, maze)
 
-# # LARGE MAZE
-# maze_l, goal_l = load_maze(path='./mazes/l_dim101.json')
-# maze = maze_l
-# res = dfs(maze, goal_l)
-# handle_result(res, maze.shape)
+# LARGE MAZE
+maze_l, goal_l = load_maze(path='./mazes/l_dim101.json')
+maze = maze_l
+res = dfs(maze, goal_l)
+handle_result(res, maze)

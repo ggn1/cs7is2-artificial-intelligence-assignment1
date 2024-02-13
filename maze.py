@@ -50,7 +50,7 @@ def create_maze(dim):
     return maze, goal
 
 #... animate the path through the maze ...
-def draw_maze(maze, save_dir='', save_filename='', save_animation=False, path=None):
+def draw_maze(maze, save_dir='', save_filename='', save_animation=False, path=None, exploration=None):
     fig, ax = plt.subplots(figsize=(10,10))
     
     # Set the border color to white
@@ -61,40 +61,33 @@ def draw_maze(maze, save_dir='', save_filename='', save_animation=False, path=No
     ax.set_xticks([])
     ax.set_yticks([])
 
-    scatter = None 
+    scatter_path = None 
+    scatter_exp = None
     
     # Prepare for path animation
-    if path is not None:
-        # line, = ax.plot([], [], color='red', linewidth=2)
-        
-        # def init():
-        #     line.set_data([], [])
-        #     return line,
-        
-        # # update is called for each path point in the maze
-        # def update(frame):
-        #     x, y = path[frame]
-        #     line.set_data(*zip(*[(p[1], p[0]) for p in path[:frame+1]]))  # update the data
-        #     return line,
-        
-        # ani = animation.FuncAnimation(
-        #     fig, update, frames=range(len(path)), init_func=init, 
-        #     blit=True, repeat = False, interval=1
-        # )
+    if path is not None and exploration is not None:
 
         def init():
-            nonlocal scatter
-            scatter = ax.scatter([], [], marker='o', color='w', s=2)
-            return scatter,
+            nonlocal scatter_path
+            nonlocal scatter_exp
+            scatter_path = ax.scatter([], [], marker='o', color='w', s=2)
+            scatter_exp = ax.scatter([], [], marker='o', color='r', s=2)
+            return scatter_path, scatter_exp
         
         # update is called for each path point in the maze
         def update(frame):
-            nonlocal scatter
-            # y, x = path[frame]
-            x = [p[1] for p in path[:frame+1]]
-            y = [p[0] for p in path[:frame+1]]
-            scatter.set_offsets(np.column_stack([x, y]))  # Update scatter plot data
-            return scatter,
+            nonlocal scatter_path
+            nonlocal scatter_exp
+            exp_i = exploration.index(path[frame])
+            path_xy = [p for p in path[:frame+1]]
+            exp_xy = [e for e in exploration[:exp_i] if not e in path_xy]
+            path_x = [p[1] for p in path_xy]
+            path_y = [p[0] for p in path_xy]
+            exp_x = [e[1] for e in exp_xy]
+            exp_y = [e[0] for e in exp_xy]
+            scatter_exp.set_offsets(np.column_stack([exp_x, exp_y]))
+            scatter_path.set_offsets(np.column_stack([path_x, path_y]))
+            return scatter_path, scatter_exp
 
         ani = animation.FuncAnimation(
             fig, update, frames = range(len(path)), init_func = init, 

@@ -11,23 +11,27 @@ def bfs(maze):
     parents = {}
     num_dead_ends = 0
     while not to_visit.empty():
-        node = to_visit.get()
-        visited.append(node) # This is the node we visit in this step of bfs.
-        if node == maze.goal: break # If this is the goal node then end search.
-        neighbors = maze.get_walkable_neighbors(node, ignore=visited)
-        if len(neighbors) == 0: num_dead_ends += 1
-        for neighbor in neighbors:
-            to_visit.put(neighbor)
-            parents[neighbor] = node
+        s = to_visit.get()
+        visited.append(s) # This is the state we visit in this step of bfs.
+        if maze.isEnd(s): break # If this is terminal state then end search.
+        # What states do we end up in when upon taking 
+        # each possible action from this state = s_prime.
+        s_prime = [maze.succ(s, a) for a in maze.actions]
+        # Only states that have not yet been visited are walkable.
+        s_prime_walkable = [sp for sp in s_prime if maze.is_walkable(sp, visited)]
+        if len(s_prime_walkable) == 0: num_dead_ends += 1
+        for sp in s_prime_walkable:
+            to_visit.put(sp)
+            parents[sp] = s
     # Reconstruct continuous solution path from start to goal.
     path = [] # Keep track of the solution path.
-    node_cur = maze.goal # current node 
-    while node_cur != maze.start: # Until we get to the start node ...
-        path.append(node_cur) # Add current node to the solution path.
-        if not node_cur in parents:
+    state_cur = maze.goal # current node 
+    while state_cur != maze.start: # Until we get to the start node ...
+        path.append(state_cur) # Add current node to the solution path.
+        if not state_cur in parents:
             print('No solution found.')
             break
-        node_cur = parents[node_cur] # Update current node to be its parent.
+        state_cur = parents[state_cur] # Update current node to be its parent.
     path.append(maze.start) # Add the starting node to the path to complete it.
     path.reverse()  # Reverse the path to get it from start to goal
     return {
@@ -45,12 +49,12 @@ if __name__ == '__main__':
     res = bfs(maze)
     handle_result(res, maze.maze, './solutions', f'bfs_dim{maze.maze.shape[0]}')
 
-    # MEDIUM MAZE
-    maze = Maze(maze=load_maze(path='./mazes/m_dim41.json'))
-    res = bfs(maze)
-    handle_result(res, maze.maze, './solutions', f'bfs_dim{maze.maze.shape[0]}')
+    # # MEDIUM MAZE
+    # maze = Maze(maze=load_maze(path='./mazes/m_dim41.json'))
+    # res = bfs(maze)
+    # handle_result(res, maze.maze, './solutions', f'bfs_dim{maze.maze.shape[0]}')
 
-    # LARGE MAZE
-    maze = Maze(maze=load_maze(path='./mazes/l_dim101.json'))
-    res = bfs(maze)
-    handle_result(res, maze.maze, './solutions', f'bfs_dim{maze.maze.shape[0]}')
+    # # LARGE MAZE
+    # maze = Maze(maze=load_maze(path='./mazes/l_dim101.json'))
+    # res = bfs(maze)
+    # handle_result(res, maze.maze, './solutions', f'bfs_dim{maze.maze.shape[0]}')

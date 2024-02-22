@@ -1,17 +1,8 @@
 # Imports 
 import numpy as np
 from track_time import track_time
+from utility import print_mat_2d, v_to_mat
 from maze import draw_maze, load_maze, MazeMDP
-
-def print_mat_2d(mat):
-    for row in mat:
-        print(row.tolist())
-
-def v_to_mat(v, shape):
-    mat = np.zeros(shape) - 1
-    for key, val in v.items():
-        mat[key] = val
-    return mat
 
 def value_iteration(maze, epsilon, print_values):
     """ 

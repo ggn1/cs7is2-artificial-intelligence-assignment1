@@ -20,7 +20,7 @@ def draw_maze(maze, save_dir='', save_filename='', save_animation=False, path=No
 
     # Plot values (value iteration) if available.
     if v is not None:
-        axes[0].matshow(v, cmap=plt.cm.Blues)
+        axes[0].matshow(v, cmap=plt.cm.seismic)
 
     axes[1].imshow(maze, interpolation='nearest')
     axes[1].set_xticks([])
@@ -189,7 +189,9 @@ class MazeMDP(Maze):
         """
         for i in range(self.maze.shape[0]):
             for j in range(self.maze.shape[1]):
-                self.states.append((i, j))
+                if self.is_walkable((i, j), []):
+                    self.states.append((i, j))
+                # self.states.append((i, j))
 
     def T(self, s, a, s_prime):
         """ 
@@ -202,16 +204,14 @@ class MazeMDP(Maze):
         @param a: Action taken.
         @param s_prime: New state.
         """
-        # Compute what s_prime should be.
-        s_prime_true = (s[0] + a[0], s[1] + a[1])
-        if not self.is_walkable(s_prime_true, visited=[]): 
-            # If s_prime_true is a wall, then state remains s.
-            s_prime_true = s
-        # Compare that with what it is given to be.
-        if s_prime_true == s_prime: return 1 # If same, then P(s, a, s') = 1.0.
-        else: return 0  # Else, P(s, a, s') = 0.0.
-    
-    def R(self, s): # a, s' does not matter in this scenario
+        # return int(
+        #     0 <= s[0]+a[0] < self.maze.shape[0] and
+        #     0 <= s[1]+a[1] < self.maze.shape[1] and 
+        #     (s[0]+a[0], s[1]+a[1]) == s_prime
+        # )
+        return self.is_walkable(s, []) and self.succ(s, a) == s_prime
+
+    def R(self, s, a, s_prime):
         """ 
         Rewards function which when given a state s and action a,
         returns the reward of taking action a in state s to end
@@ -220,21 +220,29 @@ class MazeMDP(Maze):
         @param a: Action taken.
         @param s_prime: New state.
         """
-        # Reward is 0 as long as s is not the goal and shall 
-        # be a big positive number.
-        # if (s[0]+a[0], s[1]+a[1]) != s_prime:
-        #     return -100
-        if s == self.goal: 
-            return self.max_reward
-        num_exits = 0
-        for dir in self.actions:
-            try:
-                if self.maze[(s[0]+dir[0], s[1]+dir[1])] == 1:
-                    num_exits += 1
-            except:
-                pass # could be invalid state that does not exist
-        if num_exits >= 1: 
-            if num_exits == 1: # dead end
-                return -10 * self.maze.shape[0]
-            return -1 * self.maze.shape[0]  # normal path
-        return -100 * self.maze.shape[0] # invalid or closed path or is wall
+        # if s == self.goal: # if s is goal, then large positive reward
+        #     return len(self.states) * (10**2)
+        # num_exits = sum([ # Else count no. of exits from this position.
+        #     int(self.maze[(s[0]+a[0], s[1]+a[1])] == 1) # 1 = space = exit
+        #     for a in self.actions
+        #     if (
+        #         0 <= (s[0] + a[0]) < self.maze.shape[0] and
+        #         0 <= (s[1] + a[1]) < self.maze.shape[1]
+        #     )])
+        # if num_exits >= 1: 
+        #     if num_exits == 1: # dead end
+        #         return -10
+        #     return -1
+        # return -100
+
+        try:
+            if self.maze[s] == 2: # s is goal
+                return (self.maze.shape[0]**2) * (10**3)
+            if self.maze[s] == 1: # s is space
+                if self.maze[s_prime] == 2: # s_prime is goal
+                    return self.maze.shape[0]**2
+                if self.maze[s_prime] == 1: # s_prime is space
+                    return self.maze.shape[0]
+            return 0
+        except:
+            return 0

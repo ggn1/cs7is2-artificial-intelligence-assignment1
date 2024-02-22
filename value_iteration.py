@@ -1,31 +1,17 @@
 # Imports 
 import numpy as np
-from queue import PriorityQueue
 from track_time import track_time
-from utility import handle_result
 from maze import draw_maze, load_maze, MazeMDP
 
-# def get_possible_s_primes(s, actions, states):
-#     return [
-#         s_prime 
-#         for s_prime in [(s[0] + a[0], s[1] + a[1]) for a in actions] 
-#         if s_prime in states
-#     ]
-#     return [(s[0] + a[0], s[1] + a[1]) for a in actions]
-
-def print_2d_array(arr):
-    for row in arr:
+def print_mat_2d(mat):
+    for row in mat:
         print(row.tolist())
 
-def initialize_v(maze):
-    V = np.zeros(maze.maze.shape) # Value at all maze positions = 0.
-    # V = (V == maze.maze).astype(int).astype(float) # Wall = 1, other = 0.
-    # # Set all positions with a wall to have a big negative value
-    # # since these are not valid states in the maze.
-    # V[V == 1] = -1
-    # Every actual state in the maze (position with no walls) 
-    # is consequently initialized to have value 0.
-    return V
+def v_to_mat(v, shape):
+    mat = np.zeros(shape) - 1
+    for key, val in v.items():
+        mat[key] = val
+    return mat
 
 def value_iteration(maze, epsilon, print_values):
     """ 
@@ -34,44 +20,43 @@ def value_iteration(maze, epsilon, print_values):
     """
     # Initially, value of every valid state to be 0.
     # Positions corresponding to invalid states (walls) = -(maze dim)^2.
-    Vold = np.zeros(maze.maze.shape)
-    Vnew = np.zeros(maze.maze.shape)
+    V = {state:0 for state in maze.states}
     converged = False # Keep track of convergence.
     k = 0 # Keep track of kth iteration.
     print('\nPerforming value iteration ...')
     while(not converged): # Repeat until convergence.
         # For each state ...
+        state_max_diff = 0
         for s in maze.states:
-            val_max_a = float('-inf') # Max value possible.
+            V_old = V.copy()
+            Q = {} # Max value possible.
             # For each action ...
             for a in maze.actions:
                 # Compute sum of immediate and future discounted rewards across all possible states from s.
-                val_sum = 0 
+                u = 0 
                 # For each possible new state ...
-                for s_prime in [(s[0] + a[0], s[1] + a[1]) for a in maze.actions]:
+                for s_prime in [(s[0]+a[0], s[1]+a[1]) for a in maze.actions]:
                     transitionProb = maze.T(s, a, s_prime)
                     if (transitionProb > 0):
                         reward = (
-                            maze.R(s) + # Immediate reward + 
-                            (maze.gamma * Vold[s_prime]) # Discounted future reward.
+                            maze.R(s, a, s_prime) + # Immediate reward + 
+                            (maze.gamma * V_old[s_prime]) # Discounted future reward.
                         )
-                        val = transitionProb * reward
-                    else:
-                        val = 0
-                    val_sum += val # Sum values.
-                if val_sum > val_max_a: # Max val over actions.
-                    val_max_a = val_sum
-            Vnew[s] = val_max_a # keep track of computed value.
+                        u += transitionProb * reward
+                Q[a] = u
+            V[s] = max(Q.values()) # keep track of computed value.
+            state_diff = abs(V[s] - V_old[s])
+            if state_diff > state_max_diff: 
+                state_max_diff = state_diff
         # Value iteration is considered to have converged 
         # if maximum change of all state values from state 
         # k to k+1 <= some small epsilon change.
-        converged = np.max(np.abs(Vnew - Vold)) <= epsilon # Check convergence.
-        Vold = Vnew.copy() # Set latest values as old values for next iteration.
+        converged = state_max_diff <= epsilon # Check convergence.
         k += 1 # Update iteration counts.
     if print_values:
         print(f'Iteration {k}:')
-        print_2d_array(Vold)
-    return Vold, k
+        print_mat_2d(v_to_mat(v=V, shape=maze.maze.shape))
+    return V, k
 
 def policy_extraction(maze, V):
     """ 
@@ -82,38 +67,28 @@ def policy_extraction(maze, V):
     print('\nExtracting policy ...')
     policy = {state: (0, 0) for state in maze.states}
     for s in list(policy.keys()):
-        val_max_a = float('-inf') # Max value possible.
-        best_a = (0, 0) # Keep track of best action for this state.
+        Q = {}
         # For each action ...
         for a in maze.actions:
-            # Compute sum of immediate and future discounted rewards across all possible states from s.
-            val_sum = 0 
-            # For each possible new state ...
-            for s_prime in [(s[0] + a[0], s[1] + a[1]) for a in maze.actions]:
-                transitionProb = maze.T(s, a, s_prime)
-                if (transitionProb > 0):
+            u = 0 # expected utility of taking action a from state s
+            # For each possible state ...
+            for s_prime in [(s[0]+a[0], s[1]+a[1]) for a in maze.actions]:
+                transition_prob = maze.T(s, a, s_prime)
+                if (transition_prob > 0):
                     reward = (
-                        maze.R(s) + # Immediate reward + 
+                        maze.R(s, a, s_prime) + # Immediate reward + 
                         (maze.gamma * V[s_prime]) # Discounted future reward.
                     )
-                    val = transitionProb * reward
-                else:
-                    val = 0
-                val_sum += val # Sum values.
-            if val_sum > val_max_a: # Max val over actions.
-                val_max_a = val_sum
-                best_a = a
-        if best_a == (0, 0):
-            print('No solution found')
-            break
-        policy[s] = best_a
+                    u += transition_prob * reward
+            Q[a] = u
+        policy[s] = max(Q, key=Q.get)
     return policy
 
 @track_time
-def solver(maze, epsilon=1e-2, print_values=False):
+def solver(maze, epsilon=1e-3, print_values=False):
     if print_values: 
         print('Maze:')
-        print_2d_array(maze.maze)
+        print_mat_2d(maze.maze)
 
     V, num_iters = value_iteration(maze, epsilon, print_values)
     
@@ -122,26 +97,28 @@ def solver(maze, epsilon=1e-2, print_values=False):
     s = (1,1)
     path = []
     while (s != maze.goal):
-        if (s in path):
-            print('Loop')
+        try:
+            if (s in path):
+                print('Loop')
+                break
+            path.append(s)
+            a = policy[s]
+            s = maze.succ(s, a)
+        except:
             break
-        path.append(s)
-        a = policy[s]
-        s = (s[0]+a[0], s[1]+a[1])
     path.append(s)
 
     return {
         'path': path,
-        'v': V,
+        'v': v_to_mat(V, maze.maze.shape),
         'policy': policy,
         'num_iterations': num_iters
     }
 
 if __name__ == '__main__':
     # TEST MAZE
-    maze = MazeMDP(dim=50)
+    maze = MazeMDP(dim=60)
     res = solver(maze)
-    # print('Result =', res)
     draw_maze(
         maze=maze.maze, 
         path=res['path'], 
@@ -151,22 +128,19 @@ if __name__ == '__main__':
     # # TINY MAZE
     # maze = MazeMDP(maze=load_maze(path='./mazes/t_dim5.json'))
     # res = solver(maze, print_values=True)
-    # print('Result =', res)
-    # draw_maze(maze=maze.maze, save_dir='./solutions', save_filename=f'mdpvi_dim{maze.maze.shape[0]}', save_animation=False, path=res['path'])
+    # draw_maze(maze=maze.maze, save_dir='./solutions', save_filename=f'mdpvi_dim{maze.maze.shape[0]}', save_animation=False, path=res['path'], v=res['v'])
 
     # # SMALL MAZE
     # maze = MazeMDP(maze=load_maze(path='./mazes/s_dim21.json'))
     # res = solver(maze)
-    # # print('Result =', res)
-    # draw_maze(maze=maze.maze, save_dir='./solutions', save_filename=f'mdpvi_dim{maze.maze.shape[0]}', save_animation=False, path=res['path'])
+    # draw_maze(maze=maze.maze, save_dir='./solutions', save_filename=f'mdpvi_dim{maze.maze.shape[0]}', save_animation=False, path=res['path'], v=res['v'])
 
     # # MEDIUM MAZE
     # maze = MazeMDP(maze=load_maze(path='./mazes/m_dim41.json'))
     # res = solver(maze)
-    # draw_maze(maze=maze.maze, save_dir='./solutions', save_filename=f'mdpvi_dim{maze.maze.shape[0]}', save_animation=False, path=res['path'])
+    # draw_maze(maze=maze.maze, save_dir='./solutions', save_filename=f'mdpvi_dim{maze.maze.shape[0]}', save_animation=False, path=res['path'], v=res['v'])
 
     # # LARGE MAZE
     # maze = MazeMDP(maze=load_maze(path='./mazes/l_dim101.json'))
     # res = solver(maze)
-    # # print('Result =', res)
-    # draw_maze(maze=maze.maze, save_dir='./solutions', save_filename=f'mdpvi_dim{maze.maze.shape[0]}', save_animation=False, path=res['path'])
+    # draw_maze(maze=maze.maze, save_dir='./solutions', save_filename=f'mdpvi_dim{maze.maze.shape[0]}', save_animation=False, path=res['path'], v=res['v'])

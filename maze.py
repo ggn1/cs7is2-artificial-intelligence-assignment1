@@ -85,16 +85,16 @@ def save_maze(maze, dir, filename):
     ''' Saves given maze in a json file with the 
         given name in the given directory. 
     '''
-    with open(f'{dir}/{filename}_dim{maze.maze.shape[0]}.json', 'w') as f:
-        json.dump(maze.maze.tolist(), f)
+    with open(f'{dir}/{filename}_dim{maze.matrix.shape[0]}.json', 'w') as f:
+        json.dump(maze.matrix.tolist(), f)
 
 def load_maze(path):
     ''' Loads and returns a given maze from a json  
         file at the given path. 
     '''
     with open(path, 'r') as f:
-       maze = np.array(json.load(f))
-    return maze
+       matrix = np.array(json.load(f))
+    return matrix
 
 class Maze():
     def __init__(self, start=(1, 1), matrix=None, dim=20):
@@ -107,7 +107,7 @@ class Maze():
             self.__dim = dim # Input dimension = 20 By default.
             self.matrix = np.zeros((dim*2+1, dim*2+1)) # Create a grid filled with walls only.
             self.__create_maze() # Sets goal.
-        self.actions = ["up", "left", "down", "right"]
+        self.actions = ["↑", "→", "↓", "←"]
         self.states, self.state_positions = self.__get_states()
 
     def __find_goal(self):
@@ -211,6 +211,14 @@ class Maze():
 
         return states, state_positions
 
+    def __str__(self):
+        mat = np.full(self.matrix.shape, "#")
+        for p in self.state_positions:
+            mat[p] = " "
+        mat[self.start] = "S"
+        mat[self.goal] = "G"
+        return str(mat)
+
     def T(self, s, a, s_prime):
         """ 
         Transition function which when given a state s and action a,
@@ -242,18 +250,21 @@ class Maze():
         @param a: Action taken.
         @param s_prime: Next state.
         """
-        reward = 1
-        if s == self.goal: # s is goal => large positive reward
-            reward += self.matrix.shape[0] * self.matrix.shape[1] * 100
-        else: # s is not goal => s is a path
-            surroundings_s = self.states[s]
-            num_walls = 0
-            for a in self.actions:
-                if (self.matrix[surroundings_s[a]] == 0): # wall
-                    num_walls += 1
-            reward -= num_walls
-        if s_prime == s: # next state is wall => big negative reward
-            reward -= 1
+        reward = 0
+        max_reward = self.matrix.shape[0] * self.matrix.shape[1]
+        if s == self.goal: # s is goal => big positive reward.
+            reward += max_reward
         else:
-            reward += 10
+            # count no. of walls and exits around s.
+            num_walls = np.sum(int(self.matrix[self.states[s][a]] == 0) for a in self.actions)
+            # num_exits = 4 - num_walls
+            if num_walls == 3: # dead end => negative reward.
+                reward += -1 * 0.8 * max_reward
+            if s_prime == s: # action takes agent into the wall => negative reward.
+                reward += -1 * 0.1 * max_reward
+            else: # action takes agent out of the dead end => positive reward.
+                reward += 0.1 * max_reward
         return reward
+        # if s == self.goal:
+        #     return max_reward
+        # return 0.1*max_reward

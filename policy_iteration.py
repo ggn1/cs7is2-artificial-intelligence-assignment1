@@ -81,13 +81,13 @@ def policy_iteration(maze, gamma=0.99, is_print=False):
         policy = policy_improved # Else, prep for next round of evaluation and improvement.
         k += 1
         if is_print:
-            with open(f'{output}.txt', 'a', encoding="utf-8") as f:
+            with open(f'__output/{output}.txt', 'a', encoding="utf-8") as f:
                 f.write(f'\n\nIteration {k}:\n')
                 f.write(values_to_mat_str(
                     v=V, shape=maze.matrix.shape, 
                     start=maze.start, goal=maze.goal
                 ))
-            with open(f'{output}.txt', 'a', encoding="utf-8") as f:
+            with open(f'__output/{output}.txt', 'a', encoding="utf-8") as f:
                 f.write(f'\nPolicy:\n')
                 f.write(str(policy_to_mat(
                     policy=policy, shape=maze.matrix.shape, 
@@ -108,31 +108,13 @@ if __name__ == '__main__':
     # TEST MAZE
     # maze = Maze(dim=70)
     # save_maze(maze, dir='.', filename='maze_latest')
-    maze = Maze(matrix=load_maze('./maze_latest_dim101.json'))
+    dim = 21
+    maze = Maze(matrix=load_maze(f'./maze_latest_dim{dim}.json'))
     res = policy_iteration(maze, is_print=True, gamma=0.99)
+    output = f'output_pol_iter_dim{dim}'
     draw_maze(
         maze=maze.matrix, 
         solution=res['solution'], 
         state_values=res['state_values'],
-        save={'dir':'.', 'filename':output, 'animation':False}
+        save={'dir':'__output', 'filename':output, 'animation':False}
     )
-
-    # # TINY MAZE
-    # maze = MazeMDP(maze=load_maze(path='./mazes/t_dim5.json'), gamma=0.9)
-    # res = policy_iteration(maze, is_print=True)
-    # draw_maze(maze=maze.maze, save_dir='./solutions', save_filename=f'mdpvi_dim{maze.maze.shape[0]}', save_animation=False, path=res['path'], v=res['v'])
-
-    # # SMALL MAZE
-    # maze = MazeMDP(maze=load_maze(path='./mazes/s_dim21.json'), gamma=0.9)
-    # res = policy_iteration(maze)
-    # draw_maze(maze=maze.maze, save_dir='./solutions', save_filename=f'mdpvi_dim{maze.maze.shape[0]}', save_animation=False, path=res['path'], v=res['v'])
-
-    # # MEDIUM MAZE
-    # maze = MazeMDP(maze=load_maze(path='./mazes/m_dim41.json'), gamma=0.9)
-    # res = policy_iteration(maze)
-    # draw_maze(maze=maze.maze, save_dir='./solutions', save_filename=f'mdpvi_dim{maze.maze.shape[0]}', save_animation=False, path=res['path'], v=res['v'])
-
-    # # LARGE MAZE
-    # maze = MazeMDP(maze=load_maze(path='./mazes/l_dim101.json'), gamma=0.9)
-    # res = policy_iteration(maze)
-    # draw_maze(maze=maze.maze, save_dir='./solutions', save_filename=f'mdpvi_dim{maze.maze.shape[0]}', save_animation=False, path=res['path'], v=res['v'])

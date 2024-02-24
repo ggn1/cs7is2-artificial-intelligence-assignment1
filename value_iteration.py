@@ -4,6 +4,8 @@ from track_time import track_time
 from maze import draw_maze, save_maze, load_maze, Maze
 from utility import policy_to_mat, values_to_mat, values_to_mat_str, get_solution
 
+output = 'output_val_iter'
+
 def update_values(maze, gamma, epsilon, is_print):
     """ 
     Performs value iteration and returns values for each state
@@ -45,7 +47,7 @@ def update_values(maze, gamma, epsilon, is_print):
         converged = np.max(state_diff) <= epsilon # Check convergence.
         k += 1 # Update iteration counts.
         if is_print:
-            with open('output.txt', 'a', encoding="utf-8") as f:
+            with open(f'./__output/{output}.txt', 'a', encoding="utf-8") as f:
                 f.write(f'\n\nIteration {k}:\n')
                 f.write(values_to_mat_str(
                     v=V, shape=maze.matrix.shape,
@@ -82,7 +84,7 @@ def extract_policy(maze, V, gamma, is_print):
         u_max = max(Q.values())
         policy[s] = [a for a, u in Q.items() if u == u_max]
     if is_print:
-        with open('output.txt', 'a', encoding="utf-8") as f:
+        with open(f'__output/{output}.txt', 'a', encoding="utf-8") as f:
             f.write(f'\n\nPolicy:\n')
             f.write(str(policy_to_mat(
                 policy=policy, shape=maze.matrix.shape, 
@@ -93,7 +95,7 @@ def extract_policy(maze, V, gamma, is_print):
 @track_time
 def value_iteration(maze, gamma=0.99, epsilon=1e-6, is_print=False, loop_resistent=False):
     if is_print: 
-        with open('output.txt', 'w', encoding="utf-8") as f:
+        with open(f'__output/{output}.txt', 'w', encoding="utf-8") as f:
             f.write('Maze:\n')
             f.write(str(maze))
 
@@ -114,13 +116,15 @@ if __name__ == '__main__':
     # TEST MAZE
     # maze = Maze(dim=70)
     # save_maze(maze, dir='.', filename='maze_latest')
-    maze = Maze(matrix=load_maze('./maze_latest_dim101.json'))
-    res = value_iteration(maze, is_print=True, gamma=0.99, epsilon=1e-6)
+    dim = 21
+    maze = Maze(matrix=load_maze(f'./maze_latest_dim{dim}.json'))
+    res = value_iteration(maze, is_print=True, gamma=0.99)
+    output = f'output_pol_iter_dim{dim}'
     draw_maze(
         maze=maze.matrix, 
         solution=res['solution'], 
         state_values=res['state_values'],
-        save={'dir':'.', 'filename':'output', 'animation':False}
+        save={'dir':'__output/', 'filename':output, 'animation':False}
     )
 
     # # TINY MAZE

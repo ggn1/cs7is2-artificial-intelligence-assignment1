@@ -53,7 +53,7 @@ def policy_improvement(maze, V, gamma):
 @track_time
 def policy_iteration(maze, gamma=0.99, is_print=False):
     if is_print: 
-        with open(f'{output}_dim{maze.matrix.shape[0]}.txt', 'w', encoding="utf-8") as f:
+        with open(f'{output}.txt', 'w', encoding="utf-8") as f:
             f.write('Maze:\n')
             f.write(str(maze))
 
@@ -79,13 +79,13 @@ def policy_iteration(maze, gamma=0.99, is_print=False):
         policy = policy_improved # Else, prep for next round of evaluation and improvement.
         k += 1
         if is_print:
-            with open(f'__output/{output}_dim{maze.matrix.shape[0]}.txt', 'a', encoding="utf-8") as f:
+            with open(f'__output/{output}.txt', 'a', encoding="utf-8") as f:
                 f.write(f'\n\nIteration {k}:\n')
                 f.write(values_to_mat_str(
                     v=V, shape=maze.matrix.shape, 
                     start=maze.start, goal=maze.goal
                 ))
-            with open(f'__output/{output}_dim{maze.matrix.shape[0]}.txt', 'a', encoding="utf-8") as f:
+            with open(f'__output/{output}.txt', 'a', encoding="utf-8") as f:
                 f.write(f'\nPolicy:\n')
                 f.write(str(policy_to_mat(
                     policy=policy, shape=maze.matrix.shape, 
@@ -108,8 +108,8 @@ if __name__ == '__main__':
     # maze = Maze(dim=10)
     # save_maze(maze, dir='__mazes', filename=output)
     maze = Maze(matrix=load_maze('./__mazes/maze_latest_dim21.json'))
-    res = policy_iteration(maze, is_print=True, gamma=0.99)
     output = f'output_pol_iter_dim{maze.matrix.shape[0]}'
+    res = policy_iteration(maze, is_print=True, gamma=0.99)
     draw_maze(
         maze=maze.matrix, 
         solution=res['solution'], 

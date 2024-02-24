@@ -54,13 +54,13 @@ if __name__ == '__main__':
     # maze = Maze(dim=10)
     # save_maze(maze, dir='__mazes', filename=output)
     maze = Maze(matrix=load_maze('./__mazes/maze_latest_dim101.json'))
+    output = f'output_dfs_dim{maze.matrix.shape[0]}'
     res = dfs(maze)
-    with open(f'__output/{output}_dim{maze.matrix.shape[0]}.txt', 'w', encoding='utf-8') as f:
+    with open(f'__output/{output}.txt', 'w', encoding='utf-8') as f:
         f.write(f'MAZE:\n{str(maze)}')
         f.write(f'\n\nMETRICS:')
         f.write(f'\nNo. of positions traversed = {res["num_nodes_traversed"]}')
         f.write(f'\nNo. of dead ends = {res["num_dead_ends"]}')
-    output = f'output_dfs_dim{maze.matrix.shape[0]}'
     draw_maze(
         maze=maze.matrix, 
         solution=res['solution'], 

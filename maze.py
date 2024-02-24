@@ -3,6 +3,7 @@
 import json
 import random
 import numpy as np
+from maze_state import MazeState
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
@@ -11,7 +12,7 @@ import matplotlib.animation as animation
 # start = 3
 # goal = 2
 
-def draw_maze(maze, save_dir='', save_filename='', save_animation=False, path=None, exploration=None, v=None):
+def draw_maze(maze, save=None, solution=None, exploration=None, state_values=None):
     fig, axes = plt.subplots(ncols=2, nrows=1, figsize=(10,5))
     
     # Set the border color to white
@@ -19,8 +20,8 @@ def draw_maze(maze, save_dir='', save_filename='', save_animation=False, path=No
     fig.patch.set_linewidth(0)
 
     # Plot values (value iteration) if available.
-    if v is not None:
-        axes[0].matshow(v, cmap=plt.cm.seismic)
+    if state_values is not None:
+        axes[0].matshow(state_values, cmap=plt.cm.Blues)
 
     axes[1].imshow(maze, interpolation='nearest')
     axes[1].set_xticks([])
@@ -29,47 +30,56 @@ def draw_maze(maze, save_dir='', save_filename='', save_animation=False, path=No
     scatter_path = None 
     scatter_exp = None
     
-    # Prepare for path animation
-    if path is not None:
-
+    # Animate solution path.
+    if solution is not None: # Id there is a solution, provided, draw it on the maze.
         def init():
             nonlocal scatter_path
             nonlocal scatter_exp
             scatter_path = axes[1].scatter([], [], marker='o', color='w', s=2)
-            if exploration is not None:
+            if exploration is not None: # Animate explored path as well.
                 scatter_exp = axes[1].scatter([], [], marker='o', color='r', s=2)
                 return scatter_path, scatter_exp
-            return scatter_path,
-        
-        # update is called for each path point in the maze
+            else:
+                return scatter_path,
+        # Update is called for each path point in the maze.
         def update(frame):
             nonlocal scatter_path
-            path_xy = [p for p in path[:frame+1]]
+            path_xy = [p for p in solution[:frame+1]]
             path_x = [p[1] for p in path_xy]
             path_y = [p[0] for p in path_xy]
             scatter_path.set_offsets(np.column_stack([path_x, path_y]))
             if exploration is not None: 
                 nonlocal scatter_exp
-                exp_i = exploration.index(path[frame])
+                exp_i = exploration.index(solution[frame])
                 exp_xy = [e for e in exploration[:exp_i] if not e in path_xy]
                 exp_x = [e[1] for e in exp_xy]
                 exp_y = [e[0] for e in exp_xy]
                 scatter_exp.set_offsets(np.column_stack([exp_x, exp_y]))
                 return scatter_path, scatter_exp
             return scatter_path,
-
         ani = animation.FuncAnimation(
-            fig, update, frames = range(len(path)), init_func = init, 
+            fig, update, frames = range(len(solution)), init_func = init, 
             repeat = False, interval=1, cache_frame_data=False, blit=True
         )
 
+    # Show the figure or animation.
     plt.show()
 
-    # Lines added by me to optionally save the animation and save the 
-    # image of the maze with the path drawn through it. OWN CODE
-    if save_dir != '':
-        fig.savefig(f'{save_dir}/{save_filename}.png')
-        if save_animation: ani.save(f'{save_dir}/{save_filename}.gif', writer="pillow")
+    if not save is None: # Optionally save the figure.
+        if (
+            not type(save) == dict or
+            not "dir" in save or
+            not "filename" in save or
+            not "animation" in save or
+            not type(save["dir"]) == type("filename")  == str or
+            not type(save["animation"]) == bool
+        ): raise Exception( # Validate form of save parameter.
+            'Bar argument. Parameter "save" must be of the form '
+            + '{"dir": str, "filename":str, "animate":bool}.'
+        )
+        fig.savefig(f'{save['dir']}/{save['filename']}.png')
+        if save['animation']: # Optionally save animation.
+            ani.save(f"{save['dir']}/{save['filename']}.gif", writer="pillow")
 
 def save_maze(maze, dir, filename):
     ''' Saves given maze in a json file with the 
@@ -87,30 +97,32 @@ def load_maze(path):
     return maze
 
 class Maze():
-    def __init__(self, maze=None, dim=20):
-        self.start = (1, 1)
-        self.goal = None
-        self.dim = None
-        self.maze = maze
-        self.actions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
-        if type(self.maze) != type(None): # If the maze is given, and thus is not None ...
+    def __init__(self, start=(1, 1), matrix=None, dim=20):
+        self.start = start
+        if type(matrix) != type(None): # If the maze is given, and thus is not None ...
+            self.matrix = matrix
             self.goal = self.__find_goal() # Find the goal.
-            self.dim = (self.maze.shape[0]-1)//2
+            self.__dim = (self.matrix.shape[0]-1)//2
         else:
-            self.dim = dim # Input dimension = 20 By default.
-            self.maze = np.zeros((dim*2+1, dim*2+1)) # Create a grid filled with walls only.
-            self.__create_maze()
+            self.__dim = dim # Input dimension = 20 By default.
+            self.matrix = np.zeros((dim*2+1, dim*2+1)) # Create a grid filled with walls only.
+            self.__create_maze() # Sets goal.
+        self.actions = ["up", "left", "down", "right"]
+        self.states, self.state_positions = self.__get_states()
 
     def __find_goal(self):
         ''' Return position of the goal in this maze. '''
-        for i in range(0, self.maze.shape[0]):
-            for j in range(0, self.maze.shape[1]):
-                if self.maze[i, j] == 2: 
+        for i in range(0, self.matrix.shape[0]):
+            for j in range(0, self.matrix.shape[1]):
+                if self.matrix[i, j] == 2: 
                     return (i, j)
 
     def __create_maze(self):
         # wall = 0
         # space = 1
+        # start = 3
+        # goal = 2   
+           
         # Initialize the stack with the starting point
         stack = [self.start]
         while len(stack) > 0:
@@ -118,80 +130,86 @@ class Maze():
             # Define possible directions
             directions = [(0, 1), (1, 0), (0, -1), (-1, 0)] # up, right, down, left
             random.shuffle(directions)
-
             for dx, dy in directions:
                 nx, ny = x + dx, y + dy
                 if (
                     nx >= 0 and ny >= 0 
-                    and nx < self.dim and ny < self.dim 
-                    and self.maze[2*nx+1, 2*ny+1] == 0
+                    and nx < self.__dim and ny < self.__dim 
+                    and self.matrix[2*nx+1, 2*ny+1] == 0
                 ):
-                    self.maze[2*nx+1, 2*ny+1] = 1
-                    self.maze[2*x+1+dx, 2*y+1+dy] = 1
+                    self.matrix[2*nx+1, 2*ny+1] = 1
+                    self.matrix[2*x+1+dx, 2*y+1+dy] = 1
                     stack.append((nx, ny))
                     break
             else:
                 stack.pop()
                 
         # Create an entrance and an exit
-        goal = (random.randint(2, 2*self.dim), random.randint(2, 2*self.dim))
-        while(self.maze[goal]):
-            goal = (random.randint(2, 2*self.dim), random.randint(2, 2*self.dim))
-        self.maze[self.start] = 3 # start = 3
-        self.maze[goal] = 2 # goal = 2
+        goal = (random.randint(2, 2*self.__dim), random.randint(2, 2*self.__dim))
+        while(self.matrix[goal] == 0): # If goal is wall, look again.
+            goal = (random.randint(2, 2*self.__dim), random.randint(2, 2*self.__dim))
+        self.matrix[self.start] = 3 # start = 3
+        self.matrix[goal] = 2 # goal = 2
         self.goal = goal
-
-    def isEnd(self, s):
-        """ Returns true if this is the goal state. """
-        return self.maze[s] == 2
-
-    def is_walkable(self, s, visited):
-        """ 
-        Give a state s, returns if this state is reachable 
-        in terms of a search algorithms like DFS, BFS and A*.
-        @param s: Given state.
-        @param visited: List of states that have been visited.
-        @return bool: Whether or not this state is walkable.
+          
+    def __get_states(self):
         """
-        # A state is walkable only if it has not yet been
-        # visited, is within the maze (i.e. does not lie beyond the 
-        # maze's dimensions) and is open space (not a wall).
-        return (
-            not s in visited and
-            s[0] >= 0 and
-            s[0] < self.maze.shape[0] and
-            s[1] >= 0 and
-            s[1] < self.maze.shape[1] and
-            self.maze[s] != 0 # s is not a wall
-        )
+        Returns a matrix of MazeState objects for 
+        each free space in the maze. Only empty spots
+        (not walls) are considered part of state space.
+        # wall = 0
+        # space = 1
+        # start = 3
+        # goal = 2
+        """
+        states = np.array([[None] * self.matrix.shape[0] for _ in range(self.matrix.shape[0])])
+        state_positions = [] # Only positions without a wall is considered to be a valid state.
+        # For each position in the maze ...
+        for i in range(1, len(self.matrix)-1):
+            for j in range(1, len(self.matrix)-1):
+                # If (i, j) is a wall, use 'None' to represent walls in the state.
+                if self.matrix[i][j] == 0:
+                    states[i][j] = None
+                    continue
+                state_positions.append((i, j)) # Since not wall, add to valid state positions.
+                    
+                # Else for each direction that the agent can
+                # move in from (i, j), define the new position
+                # it will end up in. If the agent moves in the
+                # direction of a wall, it's position does not change.
 
-    def succ(self, s, a):
-        """ Given a state and an action, returns new state. """
-        s_prime = (s[0] + a[0], s[1] + a[1])
-        if (
-            not self.is_walkable(s_prime, visited=[]) or 
-            self.maze[s_prime] == 0
-        ): return s
-        return s_prime
-    
-class MazeMDP(Maze):
-    def __init__(self, gamma=0.99, maze=None, dim=20):
-        self.gamma = gamma
-        self.states = []
-        super(MazeMDP, self).__init__(maze=maze, dim=dim)
-        self.add_states()
-        self.max_reward = len(self.states) * (10**2)
-    
-    def add_states(self):
-        """
-        Computes all possible states of this maze.
-        Here, states of the maze = all non-walled positions in the maze.
-        """
-        for i in range(self.maze.shape[0]):
-            for j in range(self.maze.shape[1]):
-                if self.is_walkable((i, j), []):
-                    self.states.append((i, j))
-                # self.states.append((i, j))
+                # Up
+                up = (i-1, j)
+                # if self.matrix[(i-1, j)] == 0: # wall
+                #     up = (i, j)
+                # else: # not wall
+                #     up = (i-1, j)
+                    
+                # Down
+                down = (i+1, j)
+                # if self.matrix[(i+1, j)] == 0: # wall
+                #     down = (i, j)
+                # else: # not wall
+                #     down = (i+1, j)
+                    
+                # Right
+                right = (i, j+1)
+                # if self.matrix[(i, j+1)] == 0: # wall
+                #     right = (i, j)
+                # else: # not wall
+                #     right = (i, j+1)
+                    
+                # Left
+                left = (i, j-1)
+                # if self.matrix[(i, j-1)] == 0: # wall
+                #     left = (i, j)
+                # else: # not wall
+                #     left = (i, j-1)
+
+                # Update state to capture information about immediate surroundings.
+                states[(i, j)] = MazeState(up=up, right=right, down=down, left=left)
+
+        return states, state_positions
 
     def T(self, s, a, s_prime):
         """ 
@@ -204,12 +222,16 @@ class MazeMDP(Maze):
         @param a: Action taken.
         @param s_prime: New state.
         """
-        # return int(
-        #     0 <= s[0]+a[0] < self.maze.shape[0] and
-        #     0 <= s[1]+a[1] < self.maze.shape[1] and 
-        #     (s[0]+a[0], s[1]+a[1]) == s_prime
-        # )
-        return self.is_walkable(s, []) and self.succ(s, a) == s_prime
+        if self.states[s] is None:
+            raise Exception('Given state s is a wall.')
+        # Determine what s_prime should be
+        # if action a is executed at state s.
+        s_prime_true = self.states[s][a]
+        if self.states[s_prime_true] is None:
+            s_prime_true = s
+        # Return 1.0 if expected s_prime and given one is
+        # same and 0.0 otherwise.
+        return int(s_prime == s_prime_true)
 
     def R(self, s, a, s_prime):
         """ 
@@ -218,31 +240,20 @@ class MazeMDP(Maze):
         up in state s_prime.
         @param s: Current state.
         @param a: Action taken.
-        @param s_prime: New state.
+        @param s_prime: Next state.
         """
-        # if s == self.goal: # if s is goal, then large positive reward
-        #     return len(self.states) * (10**2)
-        # num_exits = sum([ # Else count no. of exits from this position.
-        #     int(self.maze[(s[0]+a[0], s[1]+a[1])] == 1) # 1 = space = exit
-        #     for a in self.actions
-        #     if (
-        #         0 <= (s[0] + a[0]) < self.maze.shape[0] and
-        #         0 <= (s[1] + a[1]) < self.maze.shape[1]
-        #     )])
-        # if num_exits >= 1: 
-        #     if num_exits == 1: # dead end
-        #         return -10
-        #     return -1
-        # return -100
-
-        try:
-            if self.maze[s] == 2: # s is goal
-                return (self.maze.shape[0]**2) * (10**3)
-            if self.maze[s] == 1: # s is space
-                if self.maze[s_prime] == 2: # s_prime is goal
-                    return self.maze.shape[0]**2
-                if self.maze[s_prime] == 1: # s_prime is space
-                    return self.maze.shape[0]
-            return 0
-        except:
-            return 0
+        reward = 1
+        if s == self.goal: # s is goal => large positive reward
+            reward += self.matrix.shape[0] * self.matrix.shape[1] * 100
+        else: # s is not goal => s is a path
+            surroundings_s = self.states[s]
+            num_walls = 0
+            for a in self.actions:
+                if (self.matrix[surroundings_s[a]] == 0): # wall
+                    num_walls += 1
+            reward -= num_walls
+        if s_prime == s: # next state is wall => big negative reward
+            reward -= 1
+        else:
+            reward += 10
+        return reward

@@ -2,9 +2,9 @@
 import numpy as np
 from track_time import track_time
 from utility import print_mat_2d, v_to_mat
-from maze import draw_maze, load_maze, MazeMDP
+from maze import draw_maze, load_maze, Maze
 
-def value_iteration(maze, epsilon, print_values):
+def value_iteration(maze, gamma, epsilon, print_values):
     """ 
     Performs value iteration and returns values for each state
     and no. of iterations before convergence. 
@@ -31,7 +31,7 @@ def value_iteration(maze, epsilon, print_values):
                     if (transitionProb > 0):
                         reward = (
                             maze.R(s, a, s_prime) + # Immediate reward + 
-                            (maze.gamma * V_old[s_prime]) # Discounted future reward.
+                            (gamma * V_old[s_prime]) # Discounted future reward.
                         )
                         u += transitionProb * reward
                 Q[a] = u
@@ -68,7 +68,7 @@ def policy_extraction(maze, V):
                 if (transition_prob > 0):
                     reward = (
                         maze.R(s, a, s_prime) + # Immediate reward + 
-                        (maze.gamma * V[s_prime]) # Discounted future reward.
+                        (gamma * V[s_prime]) # Discounted future reward.
                     )
                     u += transition_prob * reward
             Q[a] = u
@@ -108,7 +108,7 @@ def solver(maze, epsilon=1e-3, print_values=False):
 
 if __name__ == '__main__':
     # TEST MAZE
-    maze = MazeMDP(dim=60)
+    maze = Maze(dim=60)
     res = solver(maze)
     draw_maze(
         maze=maze.maze, 
@@ -117,21 +117,21 @@ if __name__ == '__main__':
     )
 
     # # TINY MAZE
-    # maze = MazeMDP(maze=load_maze(path='./mazes/t_dim5.json'))
+    # maze = Maze(maze=load_maze(path='./mazes/t_dim5.json'))
     # res = solver(maze, print_values=True)
     # draw_maze(maze=maze.maze, save_dir='./solutions', save_filename=f'mdpvi_dim{maze.maze.shape[0]}', save_animation=False, path=res['path'], v=res['v'])
 
     # # SMALL MAZE
-    # maze = MazeMDP(maze=load_maze(path='./mazes/s_dim21.json'))
+    # maze = Maze(maze=load_maze(path='./mazes/s_dim21.json'))
     # res = solver(maze)
     # draw_maze(maze=maze.maze, save_dir='./solutions', save_filename=f'mdpvi_dim{maze.maze.shape[0]}', save_animation=False, path=res['path'], v=res['v'])
 
     # # MEDIUM MAZE
-    # maze = MazeMDP(maze=load_maze(path='./mazes/m_dim41.json'))
+    # maze = Maze(maze=load_maze(path='./mazes/m_dim41.json'))
     # res = solver(maze)
     # draw_maze(maze=maze.maze, save_dir='./solutions', save_filename=f'mdpvi_dim{maze.maze.shape[0]}', save_animation=False, path=res['path'], v=res['v'])
 
     # # LARGE MAZE
-    # maze = MazeMDP(maze=load_maze(path='./mazes/l_dim101.json'))
+    # maze = Maze(maze=load_maze(path='./mazes/l_dim101.json'))
     # res = solver(maze)
     # draw_maze(maze=maze.maze, save_dir='./solutions', save_filename=f'mdpvi_dim{maze.maze.shape[0]}', save_animation=False, path=res['path'], v=res['v'])

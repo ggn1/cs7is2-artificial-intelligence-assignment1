@@ -19,7 +19,7 @@ def print_mat_2d(mat):
         print(row.tolist())
 
 def v_to_mat(v, shape):
-    mat = np.zeros(shape) - 1
+    mat = np.full(shape, -1*float('inf'))
     for key, val in v.items():
         mat[key] = val
     return mat

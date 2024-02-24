@@ -73,10 +73,11 @@ def policy_iteration(maze, print_values=False):
         print_mat_2d(maze.maze)
 
     # Initially,
+    v_init = 0.0
     V = {}
     policy = {}
     for state in maze.states: # for all states in the maze,
-        V[state] = 0.0 # value = 0 and 
+        V[state] = v_init # value = 0 and 
         policy[state] = random.choice(maze.actions) # policy is random.
 
     k = 0 # Keep count of no. of iterations.
@@ -88,7 +89,7 @@ def policy_iteration(maze, print_values=False):
         V = policy_evaluation(maze, V, policy)
         policy_improved = policy_improvement(maze, V)
         # If no change in policy after improvement,
-        # then, policy has converged.
+        # then, it has converged.
         converged = all(
             policy_improved[state] == policy[state] 
             for state in maze.states

@@ -1,8 +1,8 @@
 # Imports 
 import numpy as np
 from track_time import track_time
-from utility import policy_to_mat, values_to_mat, values_to_mat_str
 from maze import draw_maze, save_maze, load_maze, Maze
+from utility import policy_to_mat, values_to_mat, values_to_mat_str, get_solution
 
 def update_values(maze, gamma, epsilon, is_print):
     """ 
@@ -90,51 +90,6 @@ def extract_policy(maze, V, gamma, is_print):
             )))
     return policy
 
-def get_path_rec(maze, s, policy, solution, num_backtracks):
-    if s in solution:
-        num_backtracks += 1
-        return [], num_backtracks
-    path = [s]
-    solution.append(s)
-    actions = policy[s]
-    for a in actions:
-        s_prime = maze.states[s][a]
-        res = get_path_rec(maze, s_prime, policy, solution, num_backtracks)
-        path += res[0]
-        num_backtracks += res[1]
-    return path, num_backtracks
-
-def get_path(maze, policy):
-    """ 
-    Given returns the solution (path from start 
-    to goal) to the given maze as per given policy.
-    """
-    print('Getting solution ...')
-    s =  maze.start # Begin at the start state.
-    solution = [s]
-    while (s != maze.goal): # Until the goal state is reached ...
-        if not s in policy:
-            print('No solution found.')
-            break
-        actions = policy[s]
-        a = actions[0] # Get best action for this state as per policy.
-        s_prime = maze.states[s][a] # Get next state as per policy.
-        if (s_prime in solution): # I step loop.
-            print('Loop')
-            break
-        solution.append(s_prime) # Append state to the solution.
-        s = s_prime
-    return solution
-
-def get_solution(maze, policy, loop_resistent=False):
-    if loop_resistent:
-        res = get_path_rec(maze, maze.start, policy, [], 0)
-        print('No. of action collisions =', res[1])
-        solution = res[0]
-    else:
-        solution = get_path(maze, policy)
-    return solution
-
 @track_time
 def value_iteration(maze, gamma=0.99, epsilon=1e-6, is_print=False, loop_resistent=False):
     if is_print: 
@@ -146,7 +101,7 @@ def value_iteration(maze, gamma=0.99, epsilon=1e-6, is_print=False, loop_resiste
     
     policy = extract_policy(maze, V, gamma, is_print=is_print)
     
-    solution = get_solution(maze, policy, loop_resistent=loop_resistent)
+    solution = get_solution(maze, policy)
 
     return {
         'solution': solution, 

@@ -44,3 +44,25 @@ def policy_to_mat(policy, shape, start, goal):
             mat[key[0]][key[1]] = val
     mat = [str(row) for row in mat]
     return "\n".join(mat)
+
+def get_solution(maze, policy):
+    """ 
+    Given returns the solution (path from start 
+    to goal) to the given maze as per given policy.
+    """
+    print('Getting solution ...')
+    s =  maze.start # Begin at the start state.
+    solution = [s]
+    while (s != maze.goal): # Until the goal state is reached ...
+        if not s in policy:
+            print('No solution found.')
+            break
+        actions = policy[s]
+        a = actions[0] # Get best action for this state as per policy.
+        s_prime = maze.states[s][a] # Get next state as per policy.
+        if (s_prime in solution): # I step loop.
+            print('Loop')
+            break
+        solution.append(s_prime) # Append state to the solution.
+        s = s_prime
+    return solution

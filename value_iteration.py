@@ -13,7 +13,9 @@ def update_values(maze, gamma, epsilon, is_print):
     k = 0 # Keep track of kth iteration.
     print('\nUpdating utility values ...')
     # Initially, value associated with every valid position is 0.
-    V = {state: 1.0 for state in maze.state_positions}
+    # v_init = float(maze.matrix.shape[0] ** 2)
+    v_init = 0.0
+    V = {state: v_init for state in maze.state_positions}
     while(not converged): # Repeat until convergence.
         state_diff = [] # Absolute difference between state values now v/s before.
         V_old = V.copy() # Since values will change in this iteration, keep a copy of old ones.
@@ -134,7 +136,7 @@ def get_solution(maze, policy, loop_resistent=False):
     return solution
 
 @track_time
-def value_iteration(maze, gamma=0.99, epsilon=1e-2, is_print=False, loop_resistent=False):
+def value_iteration(maze, gamma=0.99, epsilon=1e-6, is_print=False, loop_resistent=False):
     if is_print: 
         with open('output.txt', 'w', encoding="utf-8") as f:
             f.write('Maze:\n')
@@ -155,10 +157,10 @@ def value_iteration(maze, gamma=0.99, epsilon=1e-2, is_print=False, loop_resiste
 
 if __name__ == '__main__':
     # TEST MAZE
-    maze = Maze(dim=10)
-    save_maze(maze, dir='.', filename='maze_latest')
-    # maze = Maze(matrix=load_maze('./maze_latest_dim61.json'))
-    res = value_iteration(maze, is_print=True)
+    # maze = Maze(dim=70)
+    # save_maze(maze, dir='.', filename='maze_latest')
+    maze = Maze(matrix=load_maze('./maze_latest_dim101.json'))
+    res = value_iteration(maze, is_print=True, gamma=0.99, epsilon=1e-6)
     draw_maze(
         maze=maze.matrix, 
         solution=res['solution'], 

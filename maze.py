@@ -177,34 +177,10 @@ class Maze():
                 # move in from (i, j), define the new position
                 # it will end up in. If the agent moves in the
                 # direction of a wall, it's position does not change.
-
-                # Up
                 up = (i-1, j)
-                # if self.matrix[(i-1, j)] == 0: # wall
-                #     up = (i, j)
-                # else: # not wall
-                #     up = (i-1, j)
-                    
-                # Down
                 down = (i+1, j)
-                # if self.matrix[(i+1, j)] == 0: # wall
-                #     down = (i, j)
-                # else: # not wall
-                #     down = (i+1, j)
-                    
-                # Right
                 right = (i, j+1)
-                # if self.matrix[(i, j+1)] == 0: # wall
-                #     right = (i, j)
-                # else: # not wall
-                #     right = (i, j+1)
-                    
-                # Left
                 left = (i, j-1)
-                # if self.matrix[(i, j-1)] == 0: # wall
-                #     left = (i, j)
-                # else: # not wall
-                #     left = (i, j-1)
 
                 # Update state to capture information about immediate surroundings.
                 states[(i, j)] = MazeState(up=up, right=right, down=down, left=left)
@@ -250,21 +226,24 @@ class Maze():
         @param a: Action taken.
         @param s_prime: Next state.
         """
-        reward = 0
-        max_reward = self.matrix.shape[0] * self.matrix.shape[1]
-        if s == self.goal: # s is goal => big positive reward.
-            reward += max_reward
-        else:
-            # count no. of walls and exits around s.
-            num_walls = np.sum(int(self.matrix[self.states[s][a]] == 0) for a in self.actions)
-            # num_exits = 4 - num_walls
-            if num_walls == 3: # dead end => negative reward.
-                reward += -1 * 0.8 * max_reward
-            if s_prime == s: # action takes agent into the wall => negative reward.
-                reward += -1 * 0.1 * max_reward
-            else: # action takes agent out of the dead end => positive reward.
-                reward += 0.1 * max_reward
-        return reward
+        # reward = 0
+        # max_reward = self.matrix.shape[0] * self.matrix.shape[1]
+        # if s == self.goal: # s is goal => big positive reward.
+        #     reward += max_reward
+        # else:
+        #     # count no. of walls and exits around s.
+        #     num_walls = np.sum(int(self.matrix[self.states[s][a]] == 0) for a in self.actions)
+        #     # num_exits = 4 - num_walls
+        #     if num_walls == 3: # dead end => negative reward.
+        #         reward += -1 * 0.8 * max_reward
+        #     if s_prime == s: # action takes agent into the wall => negative reward.
+        #         reward += -1 * 0.1 * max_reward
+        #     else: # action takes agent out of the dead end => positive reward.
+        #         reward += 0.1 * max_reward
+        # return reward
         # if s == self.goal:
         #     return max_reward
         # return 0.1*max_reward
+        if s == self.goal: 
+            return (self.matrix.shape[0]**2)
+        return 0

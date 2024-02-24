@@ -26,7 +26,7 @@ def a_star(maze):
         s3tuple = to_visit.get() # Pop state from the priority queue with least F value.
         s = s3tuple[1] # Get node position.
         visited.append(s) # Add this node to list of visited ones.
-        if maze.isEnd(s): break # If goal is found, stop.
+        if s == maze.goal: break # If goal is found, stop.
         # What states do we end up in when upon taking 
         # each possible action from this state = s_prime.
         s_prime = [maze.succ(s, a) for a in maze.actions]

@@ -13,7 +13,7 @@ def bfs(maze):
     while not to_visit.empty():
         s = to_visit.get()
         visited.append(s) # This is the state we visit in this step of bfs.
-        if maze.isEnd(s): break # If this is terminal state then end search.
+        if s == maze.goal: break # If this is terminal state then end search.
         # What states do we end up in when upon taking 
         # each possible action from this state = s_prime.
         s_prime = [maze.succ(s, a) for a in maze.actions]

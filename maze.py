@@ -13,57 +13,100 @@ import matplotlib.animation as animation
 # goal = 2
 
 def draw_maze(maze, save=None, solution=None, exploration=None, state_values=None):
-    fig, axes = plt.subplots(ncols=2, nrows=1, figsize=(10,5))
-    
-    # Set the border color to white
-    fig.patch.set_edgecolor('white')
-    fig.patch.set_linewidth(0)
+    if not state_values is None:
+        fig, axes = plt.subplots(ncols=2, nrows=1, figsize=(10,5))
+            # Set the border color to white
+        fig.patch.set_edgecolor('white')
+        fig.patch.set_linewidth(0)
 
-    # Plot values (value iteration) if available.
-    if state_values is not None:
-        axes[0].matshow(state_values, cmap=plt.cm.Blues)
+        axes[0].imshow(maze, interpolation='nearest')
+        axes[0].set_xticks([])
+        axes[0].set_yticks([])
 
-    axes[1].imshow(maze, interpolation='nearest')
-    axes[1].set_xticks([])
-    axes[1].set_yticks([])
-
-    scatter_path = None 
-    scatter_exp = None
-    
-    # Animate solution path.
-    if solution is not None: # Id there is a solution, provided, draw it on the maze.
-        def init():
-            nonlocal scatter_path
-            nonlocal scatter_exp
-            scatter_path = axes[1].scatter([], [], marker='o', color='w', s=2)
-            if exploration is not None: # Animate explored path as well.
-                scatter_exp = axes[1].scatter([], [], marker='o', color='r', s=2)
-                return scatter_path, scatter_exp
-            else:
-                return scatter_path,
-        # Update is called for each path point in the maze.
-        def update(frame):
-            nonlocal scatter_path
-            path_xy = [p for p in solution[:frame+1]]
-            path_x = [p[1] for p in path_xy]
-            path_y = [p[0] for p in path_xy]
-            scatter_path.set_offsets(np.column_stack([path_x, path_y]))
-            if exploration is not None: 
+        scatter_path = None 
+        scatter_exp = None
+        
+        # Animate solution path.
+        if solution is not None: # Id there is a solution, provided, draw it on the maze.
+            def init():
+                nonlocal scatter_path
                 nonlocal scatter_exp
-                exp_i = exploration.index(solution[frame])
-                exp_xy = [e for e in exploration[:exp_i] if not e in path_xy]
-                exp_x = [e[1] for e in exp_xy]
-                exp_y = [e[0] for e in exp_xy]
-                scatter_exp.set_offsets(np.column_stack([exp_x, exp_y]))
-                return scatter_path, scatter_exp
-            return scatter_path,
-        ani = animation.FuncAnimation(
-            fig, update, frames = range(len(solution)), init_func = init, 
-            repeat = False, interval=1, cache_frame_data=False, blit=True
-        )
+                scatter_path = axes[0].scatter([], [], marker='o', color='w', s=2)
+                if exploration is not None: # Animate explored path as well.
+                    scatter_exp = axes[0].scatter([], [], marker='o', color='r', s=2)
+                    return scatter_path, scatter_exp
+                else:
+                    return scatter_path,
+            # Update is called for each path point in the maze.
+            def update(frame):
+                nonlocal scatter_path
+                path_xy = [p for p in solution[:frame+1]]
+                path_x = [p[1] for p in path_xy]
+                path_y = [p[0] for p in path_xy]
+                scatter_path.set_offsets(np.column_stack([path_x, path_y]))
+                if exploration is not None: 
+                    nonlocal scatter_exp
+                    exp_i = exploration.index(solution[frame])
+                    exp_xy = [e for e in exploration[:exp_i] if not e in path_xy]
+                    exp_x = [e[1] for e in exp_xy]
+                    exp_y = [e[0] for e in exp_xy]
+                    scatter_exp.set_offsets(np.column_stack([exp_x, exp_y]))
+                    return scatter_path, scatter_exp
+                return scatter_path,
+            ani = animation.FuncAnimation(
+                fig, update, frames = range(len(solution)), init_func = init, 
+                repeat = False, interval=1, cache_frame_data=False, blit=True
+            )
 
-    # Show the figure or animation.
-    plt.show()
+        # Plot values (value iteration) if available.
+        axes[1].matshow(state_values, cmap=plt.cm.Blues)
+    else:
+        fig, axis = plt.subplots(ncols=1, nrows=1, figsize=(10,10))
+        
+        # Set the border color to white
+        fig.patch.set_edgecolor('white')
+        fig.patch.set_linewidth(0)
+
+        axis.imshow(maze, interpolation='nearest')
+        axis.set_xticks([])
+        axis.set_yticks([])
+
+        scatter_path = None 
+        scatter_exp = None
+        
+        # Animate solution path.
+        if solution is not None: # Id there is a solution, provided, draw it on the maze.
+            def init():
+                nonlocal scatter_path
+                nonlocal scatter_exp
+                scatter_path = axis.scatter([], [], marker='o', color='w', s=2)
+                if exploration is not None: # Animate explored path as well.
+                    scatter_exp = axis.scatter([], [], marker='o', color='r', s=2)
+                    return scatter_path, scatter_exp
+                else:
+                    return scatter_path,
+            # Update is called for each path point in the maze.
+            def update(frame):
+                nonlocal scatter_path
+                path_xy = [p for p in solution[:frame+1]]
+                path_x = [p[1] for p in path_xy]
+                path_y = [p[0] for p in path_xy]
+                scatter_path.set_offsets(np.column_stack([path_x, path_y]))
+                if exploration is not None: 
+                    nonlocal scatter_exp
+                    exp_i = exploration.index(solution[frame])
+                    exp_xy = [e for e in exploration[:exp_i] if not e in path_xy]
+                    exp_x = [e[1] for e in exp_xy]
+                    exp_y = [e[0] for e in exp_xy]
+                    scatter_exp.set_offsets(np.column_stack([exp_x, exp_y]))
+                    return scatter_path, scatter_exp
+                return scatter_path,
+            ani = animation.FuncAnimation(
+                fig, update, frames = range(len(solution)), init_func = init, 
+                repeat = False, interval=1, cache_frame_data=False, blit=True
+            )
+    
+    plt.show() # Show the figure or animation.
 
     if not save is None: # Optionally save the figure.
         if (

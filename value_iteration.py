@@ -47,7 +47,7 @@ def update_values(maze, gamma, epsilon, is_print):
         converged = np.max(state_diff) <= epsilon # Check convergence.
         k += 1 # Update iteration counts.
         if is_print:
-            with open(f'./__output/{output}.txt', 'a', encoding="utf-8") as f:
+            with open(f'./__output/{output}_dim{maze.matrix.shape[0]}.txt', 'a', encoding="utf-8") as f:
                 f.write(f'\n\nIteration {k}:\n')
                 f.write(values_to_mat_str(
                     v=V, shape=maze.matrix.shape,
@@ -84,7 +84,7 @@ def extract_policy(maze, V, gamma, is_print):
         u_max = max(Q.values())
         policy[s] = [a for a, u in Q.items() if u == u_max]
     if is_print:
-        with open(f'__output/{output}.txt', 'a', encoding="utf-8") as f:
+        with open(f'__output/{output}_dim{maze.matrix.shape[0]}.txt', 'a', encoding="utf-8") as f:
             f.write(f'\n\nPolicy:\n')
             f.write(str(policy_to_mat(
                 policy=policy, shape=maze.matrix.shape, 
@@ -95,7 +95,7 @@ def extract_policy(maze, V, gamma, is_print):
 @track_time
 def value_iteration(maze, gamma=0.99, epsilon=1e-6, is_print=False, loop_resistent=False):
     if is_print: 
-        with open(f'__output/{output}.txt', 'w', encoding="utf-8") as f:
+        with open(f'__output/{output}_dim{maze.matrix.shape[0]}.txt', 'w', encoding="utf-8") as f:
             f.write('Maze:\n')
             f.write(str(maze))
 
@@ -114,35 +114,14 @@ def value_iteration(maze, gamma=0.99, epsilon=1e-6, is_print=False, loop_resiste
 
 if __name__ == '__main__':
     # TEST MAZE
-    # maze = Maze(dim=70)
-    # save_maze(maze, dir='.', filename='maze_latest')
-    dim = 21
-    maze = Maze(matrix=load_maze(f'./maze_latest_dim{dim}.json'))
+    # maze = Maze(dim=10)
+    # save_maze(maze, dir='__mazes', filename=output)
+    maze = Maze(matrix=load_maze('./__mazes/maze_latest_dim21.json'))
     res = value_iteration(maze, is_print=True, gamma=0.99)
-    output = f'output_pol_iter_dim{dim}'
+    output = f'output_val_iter_dim{maze.matrix.shape[0]}'
     draw_maze(
         maze=maze.matrix, 
         solution=res['solution'], 
         state_values=res['state_values'],
         save={'dir':'__output/', 'filename':output, 'animation':False}
     )
-
-    # # TINY MAZE
-    # maze = Maze(maze=load_maze(path='./mazes/t_dim5.json'))
-    # res = solver(maze, is_print=True)
-    # draw_maze(maze=maze.matrix, save_dir='./solutions', save_filename=f'mdpvi_dim{maze.matrix.shape[0]}', save_animation=False, path=res['path'], v=res['v'])
-
-    # # SMALL MAZE
-    # maze = Maze(maze=load_maze(path='./mazes/s_dim21.json'))
-    # res = solver(maze)
-    # draw_maze(maze=maze.matrix, save_dir='./solutions', save_filename=f'mdpvi_dim{maze.matrix.shape[0]}', save_animation=False, path=res['path'], v=res['v'])
-
-    # # MEDIUM MAZE
-    # maze = Maze(maze=load_maze(path='./mazes/m_dim41.json'))
-    # res = solver(maze)
-    # draw_maze(maze=maze.matrix, save_dir='./solutions', save_filename=f'mdpvi_dim{maze.matrix.shape[0]}', save_animation=False, path=res['path'], v=res['v'])
-
-    # # LARGE MAZE
-    # maze = Maze(maze=load_maze(path='./mazes/l_dim101.json'))
-    # res = solver(maze)
-    # draw_maze(maze=maze.matrix, save_dir='./solutions', save_filename=f'mdpvi_dim{maze.matrix.shape[0]}', save_animation=False, path=res['path'], v=res['v'])

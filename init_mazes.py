@@ -1,24 +1,17 @@
-# Running this python file creates and saves 3 mazes
-# (small, medium, large) that shall be used to
-# evaluate each solver.
-
-# Imports.
+import os
 from maze import Maze, save_maze, draw_maze
 
-# Create mazes.
-maze_t = Maze(dim=2) # maze size = 5 * 5
-# maze_s = Maze(dim=10) # maze size = 21 * 21
-# maze_m = Maze(dim=20) # maze size = 31 * 31
-# maze_l = Maze(dim=50) # maze size = 91 * 91
-
-# Save mazes.
-save_maze(maze=maze_t, dir='./mazes', filename=f't')
-# save_maze(maze=maze_s, dir='./mazes', filename=f's')
-# save_maze(maze=maze_m, dir='./mazes', filename=f'm')
-# save_maze(maze=maze_l, dir='./mazes', filename=f'l')
-
-# Draw mazes
-draw_maze(maze=maze_t.maze, save_dir='./mazes', save_filename=f't_dim{maze_t.maze.shape[0]}')
-# draw_maze(maze=maze_s.maze, save_dir='./mazes', save_filename=f's_dim{maze_s.maze.shape[0]}')
-# draw_maze(maze=maze_m.maze, save_dir='./mazes', save_filename=f'm_dim{maze_m.maze.shape[0]}')
-# draw_maze(maze=maze_l.maze, save_dir='./mazes', save_filename=f'l_dim{maze_l.maze.shape[0]}')
+for dim in [6, 10, 30, 50]:
+    size = dim*2+1
+    print(f'Creating {size} x {size} mazes ...', end=' ')
+    for i in range(2): # Create 42 (size x size) mazes. 1 with 2 goals and 1 with 1 goal.
+        maze = Maze(dim=dim, num_goals=1 if i==1 else 2)
+        output = f'{i+1}'
+        dir_out = f'./__mazes/size{maze.matrix.shape[0]}'
+        if not os.path.exists(dir_out): os.makedirs(dir_out)
+        save_maze(maze, dir=dir_out, filename=output)
+        draw_maze(
+            maze=maze.matrix,
+            save={'dir':dir_out, 'filename':output, 'animation':False}
+        )
+    print('done!')

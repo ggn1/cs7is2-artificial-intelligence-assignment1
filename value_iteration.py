@@ -1,10 +1,8 @@
-# Imports 
+# Imports
+import os 
 import numpy as np
-from track_time import track_time
 from maze import draw_maze, save_maze, load_maze, Maze
-from utility import policy_to_mat, values_to_mat, values_to_mat_str, get_solution
-
-output = 'output_val_iter'
+from utility import track_mem_time, policy_to_mat, values_to_mat, values_to_mat_str, get_solution, print_result
 
 def update_values(maze, gamma, epsilon, is_print):
     """ 
@@ -13,7 +11,7 @@ def update_values(maze, gamma, epsilon, is_print):
     """
     converged = False # Keep track of convergence.
     k = 0 # Keep track of kth iteration.
-    print('\nUpdating utility values ...')
+    print('Updating utility values ...')
     # Initially, value associated with every valid position is 0.
     # v_init = float(maze.matrix.shape[0] ** 2)
     v_init = 0.0
@@ -47,11 +45,11 @@ def update_values(maze, gamma, epsilon, is_print):
         converged = np.max(state_diff) <= epsilon # Check convergence.
         k += 1 # Update iteration counts.
         if is_print:
-            with open(f'./__output/{output}.txt', 'a', encoding="utf-8") as f:
+            with open(f'{dir_out}/{output}.txt', 'a', encoding="utf-8") as f:
                 f.write(f'\n\nIteration {k}:\n')
                 f.write(values_to_mat_str(
                     v=V, shape=maze.matrix.shape,
-                    start=maze.start, goal=maze.goal
+                    start=maze.start, goals=maze.goals
                 ))
     return V, k
 
@@ -61,7 +59,7 @@ def extract_policy(maze, V, gamma, is_print):
     extracts policy as being the action at each
     state which maximizes expected reward. Returns path.
     """
-    print('\nExtracting policy ...')
+    print('Extracting policy ...')
     policy = {}
     for s in maze.state_positions: # For each valid state (not wall).
         Q = {} # Expected utility of each action.
@@ -84,18 +82,18 @@ def extract_policy(maze, V, gamma, is_print):
         u_max = max(Q.values())
         policy[s] = [a for a, u in Q.items() if u == u_max]
     if is_print:
-        with open(f'__output/{output}.txt', 'a', encoding="utf-8") as f:
+        with open(f'{dir_out}/{output}.txt', 'a', encoding="utf-8") as f:
             f.write(f'\n\nPolicy:\n')
             f.write(str(policy_to_mat(
                 policy=policy, shape=maze.matrix.shape, 
-                start=maze.start, goal=maze.goal
+                start=maze.start, goals=maze.goals
             )))
     return policy
 
-@track_time
+@track_mem_time
 def value_iteration(maze, gamma=0.99, epsilon=1e-6, is_print=False, loop_resistent=False):
     if is_print: 
-        with open(f'__output/{output}.txt', 'w', encoding="utf-8") as f:
+        with open(f'{dir_out}/{output}.txt', 'w', encoding="utf-8") as f:
             f.write('Maze:\n')
             f.write(str(maze))
 
@@ -103,7 +101,7 @@ def value_iteration(maze, gamma=0.99, epsilon=1e-6, is_print=False, loop_resiste
     
     policy = extract_policy(maze, V, gamma, is_print=is_print)
     
-    solution = get_solution(maze, policy)
+    solution = get_solution(maze, policy, dir_out=dir_out, file_out=output)
 
     return {
         'solution': solution, 
@@ -112,16 +110,40 @@ def value_iteration(maze, gamma=0.99, epsilon=1e-6, is_print=False, loop_resiste
         'num_iterations': num_iters
     }
 
+output = ''
+dir_out = ''
 if __name__ == '__main__':
-    # TEST MAZE
-    # maze = Maze(dim=10)
-    # save_maze(maze, dir='__mazes', filename=output)
-    maze = Maze(matrix=load_maze('./__mazes/maze_latest_dim21.json'))
-    output = f'output_val_iter_dim{maze.matrix.shape[0]}'
-    res = value_iteration(maze, is_print=True, gamma=0.99)
-    draw_maze(
-        maze=maze.matrix, 
-        solution=res['solution'], 
-        state_values=res['state_values'],
-        save={'dir':'__output/', 'filename':output, 'animation':False}
-    )
+    # # TEST MAZE
+    # # maze = Maze(dim=10)
+    # # save_maze(maze, dir='__mazes', filename=output)
+    # i = 0
+    # maze_size = 13
+    # print(f'Solving {maze_size} x {maze_size} maze {i+1} ...')
+    # output = f'{i+1}_valiter'
+    # dir_out = f'__mazes/size{maze_size}'
+    # maze = Maze(matrix=load_maze(path=f"{dir_out}/{i+1}.json"))
+    # res = value_iteration(maze, is_print=True)
+    # print_result(result=res, dir=dir_out, filename=output)
+    # draw_maze(
+    #     maze=maze.matrix, 
+    #     solution=res['solution'], 
+    #     state_values=res['state_values'],
+    #     save={'dir':dir_out, 'filename':output, 'animation':True}
+    # )
+    # print('Done!\n')
+
+    for maze_size in [13, 21, 61, 101]:
+        for i in range(2):
+            print(f'Solving {maze_size} x {maze_size} maze {i+1} ...')
+            output = f'{i+1}_valiter'
+            dir_out = f'__mazes/size{maze_size}'
+            maze = Maze(matrix=load_maze(path=f"{dir_out}/{i+1}.json"))
+            res = value_iteration(maze, is_print=True)
+            print_result(result=res, dir=dir_out, filename=output)
+            draw_maze(
+                maze=maze.matrix, 
+                solution=res['solution'], 
+                state_values=res['state_values'],
+                save={'dir':dir_out, 'filename':output, 'animation':True},
+            )
+            print('Done!\n')

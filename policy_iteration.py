@@ -1,9 +1,8 @@
 # Imports 
 import random
 import numpy as np
-from track_time import track_time
 from maze import draw_maze, load_maze, Maze
-from utility import policy_to_mat, values_to_mat, values_to_mat_str, get_solution
+from utility import policy_to_mat, values_to_mat, values_to_mat_str, get_solution, print_result, track_mem_time
 
 def policy_evaluation(maze, V, policy, gamma):
     """ Evaluates given policy and returns value of each state based on it. """
@@ -50,10 +49,10 @@ def policy_improvement(maze, V, gamma):
         policy[s] = [a for a, u in Q.items() if u == u_max] # Update policy.
     return policy
 
-@track_time
+@track_mem_time
 def policy_iteration(maze, gamma=0.99, is_print=False):
     if is_print: 
-        with open(f'{output}.txt', 'w', encoding="utf-8") as f:
+        with open(f'{dir_out}/{output}.txt', 'w', encoding="utf-8") as f:
             f.write('Maze:\n')
             f.write(str(maze))
 
@@ -79,21 +78,21 @@ def policy_iteration(maze, gamma=0.99, is_print=False):
         policy = policy_improved # Else, prep for next round of evaluation and improvement.
         k += 1
         if is_print:
-            with open(f'__output/{output}.txt', 'a', encoding="utf-8") as f:
+            with open(f'{dir_out}/{output}.txt', 'a', encoding="utf-8") as f:
                 f.write(f'\n\nIteration {k}:\n')
                 f.write(values_to_mat_str(
                     v=V, shape=maze.matrix.shape, 
-                    start=maze.start, goal=maze.goal
+                    start=maze.start, goals=maze.goals
                 ))
-            with open(f'__output/{output}.txt', 'a', encoding="utf-8") as f:
+            with open(f'{dir_out}/{output}.txt', 'a', encoding="utf-8") as f:
                 f.write(f'\nPolicy:\n')
                 f.write(str(policy_to_mat(
                     policy=policy, shape=maze.matrix.shape, 
-                    start=maze.start, goal=maze.goal
+                    start=maze.start, goals=maze.goals
                 )))
     
     # Once policy has converged, get the best path to goal based on it.
-    solution = get_solution(maze, policy)
+    solution = get_solution(maze, policy, dir_out=dir_out, file_out=output)
 
     return {
         'solution': solution, 
@@ -102,17 +101,34 @@ def policy_iteration(maze, gamma=0.99, is_print=False):
         'num_iterations': k
     }
 
-output = 'output_pol_iter'
+output = ''
+dir_out = ''
 if __name__ == '__main__':
-    # TEST MAZE
-    # maze = Maze(dim=10)
-    # save_maze(maze, dir='__mazes', filename=output)
-    maze = Maze(matrix=load_maze('./__mazes/maze_latest_dim21.json'))
-    output = f'output_pol_iter_dim{maze.matrix.shape[0]}'
-    res = policy_iteration(maze, is_print=True, gamma=0.99)
-    draw_maze(
-        maze=maze.matrix, 
-        solution=res['solution'], 
-        state_values=res['state_values'],
-        save={'dir':'__output', 'filename':output, 'animation':False}
-    )
+    # # TEST MAZE
+    # # maze = Maze(dim=10)
+    # # save_maze(maze, dir='__mazes', filename=output)
+    # maze = Maze(matrix=load_maze('./__mazes/maze_latest_dim21.json'))
+    # output = f'output_pol_iter_dim{maze.matrix.shape[0]}'
+    # res = policy_iteration(maze, is_print=True, gamma=0.99)
+    # draw_maze(
+    #     maze=maze.matrix, 
+    #     solution=res['solution'], 
+    #     state_values=res['state_values'],
+    #     save={'dir':'__output', 'filename':output, 'animation':False}
+    # )
+
+    for maze_size in [13, 21, 61, 101]:
+        for i in range(2):
+            print(f'Solving {maze_size} x {maze_size} maze {i+1} ...')
+            output = f'{i+1}_politer'
+            dir_out = f'__mazes/size{maze_size}'
+            maze = Maze(matrix=load_maze(path=f"{dir_out}/{i+1}.json"))
+            res = policy_iteration(maze, is_print=True)
+            print_result(result=res, dir=dir_out, filename=output)
+            draw_maze(
+                maze=maze.matrix, 
+                solution=res['solution'], 
+                state_values=res['state_values'],
+                save={'dir':dir_out, 'filename':output, 'animation':True},
+            )
+            print('Done!\n')

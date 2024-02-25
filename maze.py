@@ -3,8 +3,9 @@
 import json
 import random
 import numpy as np
-from maze_state import MazeState
+import matplotlib as mpl
 import matplotlib.pyplot as plt
+from maze_state import MazeState
 import matplotlib.animation as animation
 
 # wall = 0
@@ -13,6 +14,7 @@ import matplotlib.animation as animation
 # goal = 2
 
 def draw_maze(maze, save=None, solution=None, exploration=None, state_values=None):
+
     if not state_values is None:
         fig, axes = plt.subplots(ncols=2, nrows=1, figsize=(10,5))
             # Set the border color to white
@@ -75,12 +77,12 @@ def draw_maze(maze, save=None, solution=None, exploration=None, state_values=Non
         scatter_exp = None
         
         # Animate solution path.
-        if solution is not None: # Id there is a solution, provided, draw it on the maze.
+        if not solution is None: # Id there is a solution, provided, draw it on the maze.
             def init():
                 nonlocal scatter_path
                 nonlocal scatter_exp
                 scatter_path = axis.scatter([], [], marker='o', color='w', s=2)
-                if exploration is not None: # Animate explored path as well.
+                if not exploration is None: # Animate explored path as well.
                     scatter_exp = axis.scatter([], [], marker='o', color='r', s=2)
                     return scatter_path, scatter_exp
                 else:
@@ -92,7 +94,7 @@ def draw_maze(maze, save=None, solution=None, exploration=None, state_values=Non
                 path_x = [p[1] for p in path_xy]
                 path_y = [p[0] for p in path_xy]
                 scatter_path.set_offsets(np.column_stack([path_x, path_y]))
-                if exploration is not None: 
+                if not exploration is None: 
                     nonlocal scatter_exp
                     exp_i = exploration.index(solution[frame])
                     exp_xy = [e for e in exploration[:exp_i] if not e in path_xy]
@@ -105,8 +107,6 @@ def draw_maze(maze, save=None, solution=None, exploration=None, state_values=Non
                 fig, update, frames = range(len(solution)), init_func = init, 
                 repeat = False, interval=1, cache_frame_data=False, blit=True
             )
-    
-    plt.show() # Show the figure or animation.
 
     if not save is None: # Optionally save the figure.
         if (
@@ -120,15 +120,21 @@ def draw_maze(maze, save=None, solution=None, exploration=None, state_values=Non
             'Bar argument. Parameter "save" must be of the form '
             + '{"dir": str, "filename":str, "animate":bool}.'
         )
-        fig.savefig(f'{save['dir']}/{save['filename']}.png')
         if save['animation']: # Optionally save animation.
-            ani.save(f"{save['dir']}/{save['filename']}.gif", writer="pillow")
+            print('Saving animation ...')
+            ani.save(f"{save['dir']}/{save['filename']}.mp4", writer="ffmpeg", fps=30)
+
+    # Render figure.
+    plt.show()
+
+    if not save == None:
+        fig.savefig(f'{save['dir']}/{save['filename']}.png')
 
 def save_maze(maze, dir, filename):
     ''' Saves given maze in a json file with the 
         given name in the given directory. 
     '''
-    with open(f'{dir}/{filename}_dim{maze.matrix.shape[0]}.json', 'w') as f:
+    with open(f'{dir}/{filename}.json', 'w') as f:
         json.dump(maze.matrix.tolist(), f)
 
 def load_maze(path):
@@ -140,27 +146,29 @@ def load_maze(path):
     return matrix
 
 class Maze():
-    def __init__(self, start=(1, 1), matrix=None, dim=20):
+    def __init__(self, start=(1, 1), matrix=None, dim=20, num_goals=1):
         self.start = start
         if type(matrix) != type(None): # If the maze is given, and thus is not None ...
             self.matrix = matrix
-            self.goal = self.__find_goal() # Find the goal.
+            self.goals = self.__find_goals() # Find the goal.
             self.__dim = (self.matrix.shape[0]-1)//2
         else:
             self.__dim = dim # Input dimension = 20 By default.
             self.matrix = np.zeros((dim*2+1, dim*2+1)) # Create a grid filled with walls only.
-            self.__create_maze() # Sets goal.
+            self.__create_maze(num_goals) # Sets goal.
         self.actions = ["↑", "→", "↓", "←"]
         self.states, self.state_positions = self.__get_states()
 
-    def __find_goal(self):
+    def __find_goals(self):
         ''' Return position of the goal in this maze. '''
+        goals = []
         for i in range(0, self.matrix.shape[0]):
             for j in range(0, self.matrix.shape[1]):
                 if self.matrix[i, j] == 2: 
-                    return (i, j)
+                    goals.append((i, j))
+        return goals
 
-    def __create_maze(self):
+    def __create_maze(self, num_goals):
         # wall = 0
         # space = 1
         # start = 3
@@ -187,13 +195,20 @@ class Maze():
             else:
                 stack.pop()
                 
-        # Create an entrance and an exit
-        goal = (random.randint(2, 2*self.__dim), random.randint(2, 2*self.__dim))
-        while(self.matrix[goal] == 0): # If goal is wall, look again.
-            goal = (random.randint(2, 2*self.__dim), random.randint(2, 2*self.__dim))
+        # Create start.
         self.matrix[self.start] = 3 # start = 3
-        self.matrix[goal] = 2 # goal = 2
-        self.goal = goal
+        
+        # Create goals.
+        goals = []
+        while(len(goals) != num_goals):
+            goal = (random.randint(1, 2*self.__dim-1), random.randint(2, 2*self.__dim))
+            while( # If goal is start or another goal, look again.
+                goal == self.start or 
+                self.matrix[goal] == 2 
+            ): goal = (random.randint(1, 2*self.__dim-1), random.randint(2, 2*self.__dim))
+            self.matrix[goal] = 2 # goal = 2
+            goals.append(goal)
+        self.goals = goals
           
     def __get_states(self):
         """
@@ -235,8 +250,10 @@ class Maze():
         for p in self.state_positions:
             mat[p] = " "
         mat[self.start] = "S"
-        mat[self.goal] = "G"
-        return str(mat)
+        for goal in self.goals: mat[goal] = "G"
+        mat = mat.tolist()
+        mat_str = [str(row) for row in mat]
+        return "\n".join(mat_str)
 
     def T(self, s, a, s_prime):
         """ 
@@ -271,7 +288,7 @@ class Maze():
         """
         # reward = 0
         # max_reward = self.matrix.shape[0] * self.matrix.shape[1]
-        # if s == self.goal: # s is goal => big positive reward.
+        # if s == self.goals: # s is goal => big positive reward.
         #     reward += max_reward
         # else:
         #     # count no. of walls and exits around s.
@@ -284,9 +301,9 @@ class Maze():
         #     else: # action takes agent out of the dead end => positive reward.
         #         reward += 0.1 * max_reward
         # return reward
-        # if s == self.goal:
+        # if s == self.goals:
         #     return max_reward
         # return 0.1*max_reward
-        if s == self.goal: 
+        if s in self.goals: 
             return (self.matrix.shape[0]**2)
         return 0

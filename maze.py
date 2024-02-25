@@ -146,7 +146,7 @@ def load_maze(path):
     return matrix
 
 class Maze():
-    def __init__(self, start=(1, 1), matrix=None, dim=20, num_goals=1):
+    def __init__(self, start=(1, 1), goals=[], matrix=None, dim=20, num_goals=1):
         self.start = start
         if type(matrix) != type(None): # If the maze is given, and thus is not None ...
             self.matrix = matrix
@@ -155,7 +155,7 @@ class Maze():
         else:
             self.__dim = dim # Input dimension = 20 By default.
             self.matrix = np.zeros((dim*2+1, dim*2+1)) # Create a grid filled with walls only.
-            self.__create_maze(num_goals) # Sets goal.
+            self.__create_maze(num_goals=num_goals, goals=goals) # Sets goal.
         self.actions = ["↑", "→", "↓", "←"]
         self.states, self.state_positions = self.__get_states()
 
@@ -168,7 +168,7 @@ class Maze():
                     goals.append((i, j))
         return goals
 
-    def __create_maze(self, num_goals):
+    def __create_maze(self, num_goals, goals):
         # wall = 0
         # space = 1
         # start = 3
@@ -199,16 +199,19 @@ class Maze():
         self.matrix[self.start] = 3 # start = 3
         
         # Create goals.
-        goals = []
-        while(len(goals) != num_goals):
-            goal = (random.randint(1, 2*self.__dim-1), random.randint(2, 2*self.__dim))
+        goals_new = []
+        while(len(goals_new) < num_goals):
+            if len(goals) == 0:
+                goal = (random.randint(1, 2*self.__dim-1), random.randint(2, 2*self.__dim))
+            else:
+                goal = goals.pop(0)
             while( # If goal is start or another goal, look again.
                 goal == self.start or 
                 self.matrix[goal] == 2 
             ): goal = (random.randint(1, 2*self.__dim-1), random.randint(2, 2*self.__dim))
             self.matrix[goal] = 2 # goal = 2
-            goals.append(goal)
-        self.goals = goals
+            goals_new.append(goal)
+        self.goals = goals_new
           
     def __get_states(self):
         """

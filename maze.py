@@ -289,24 +289,6 @@ class Maze():
         @param a: Action taken.
         @param s_prime: Next state.
         """
-        # reward = 0
-        # max_reward = self.matrix.shape[0] * self.matrix.shape[1]
-        # if s == self.goals: # s is goal => big positive reward.
-        #     reward += max_reward
-        # else:
-        #     # count no. of walls and exits around s.
-        #     num_walls = np.sum(int(self.matrix[self.states[s][a]] == 0) for a in self.actions)
-        #     # num_exits = 4 - num_walls
-        #     if num_walls == 3: # dead end => negative reward.
-        #         reward += -1 * 0.8 * max_reward
-        #     if s_prime == s: # action takes agent into the wall => negative reward.
-        #         reward += -1 * 0.1 * max_reward
-        #     else: # action takes agent out of the dead end => positive reward.
-        #         reward += 0.1 * max_reward
-        # return reward
-        # if s == self.goals:
-        #     return max_reward
-        # return 0.1*max_reward
         if s in self.goals: 
-            return (self.matrix.shape[0]**2)
+            return (self.matrix.shape[0]**3)
         return 0

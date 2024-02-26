@@ -5,6 +5,7 @@ from maze import draw_maze, save_maze, load_maze, Maze
 from utility import track_mem_time, policy_to_mat, values_to_mat, values_to_mat_str, get_solution, print_result
 
 def update_values(maze, gamma, epsilon, is_print):
+    global output, dir_out
     """ 
     Performs value iteration and returns values for each state
     and no. of iterations before convergence. 
@@ -54,6 +55,7 @@ def update_values(maze, gamma, epsilon, is_print):
     return V, k
 
 def extract_policy(maze, V, gamma, is_print):
+    global output, dir_out
     """ 
     Given values of each state and the maze,
     extracts policy as being the action at each
@@ -91,7 +93,8 @@ def extract_policy(maze, V, gamma, is_print):
     return policy
 
 @track_mem_time
-def value_iteration(maze, gamma=0.99, epsilon=1e-6, is_print=False, loop_resistent=False):
+def value_iteration(maze, gamma=0.99, epsilon=1e-6, is_print=False):
+    global output, dir_out
     if is_print: 
         with open(f'{dir_out}/{output}.txt', 'w', encoding="utf-8") as f:
             f.write('Maze:\n')
@@ -110,34 +113,14 @@ def value_iteration(maze, gamma=0.99, epsilon=1e-6, is_print=False, loop_resiste
         'num_iterations': num_iters
     }
 
-output = ''
-dir_out = ''
-if __name__ == '__main__':
-    # # TEST MAZE
-    # # maze = Maze(dim=10)
-    # # save_maze(maze, dir='__mazes', filename=output)
-    # i = 0
-    # maze_size = 13
-    # print(f'Solving {maze_size} x {maze_size} maze {i+1} ...')
-    # output = f'{i+1}_valiter'
-    # dir_out = f'__mazes/size{maze_size}'
-    # maze = Maze(matrix=load_maze(path=f"{dir_out}/{i+1}.json"))
-    # res = value_iteration(maze, is_print=True)
-    # print_result(result=res, dir=dir_out, filename=output)
-    # draw_maze(
-    #     maze=maze.matrix, 
-    #     solution=res['solution'], 
-    #     state_values=res['state_values'],
-    #     save={'dir':dir_out, 'filename':output, 'animation':True}
-    # )
-    # print('Done!\n')
-
-    for maze_size in [13, 21, 61, 101]:
-        for i in range(2):
-            print(f'Solving {maze_size} x {maze_size} maze {i+1} ...')
-            output = f'{i+1}_valiter'
+def __solve_mazes(sizes, id_nums):
+    global output, dir_out
+    for maze_size in sizes:
+        for i in id_nums:
+            print(f'Solving {maze_size} x {maze_size} maze {i} ...')
+            output = f'{i}_valiter'
             dir_out = f'__mazes/size{maze_size}'
-            maze = Maze(matrix=load_maze(path=f"{dir_out}/{i+1}.json"))
+            maze = Maze(matrix=load_maze(path=f"{dir_out}/{i}.json"))
             res = value_iteration(maze, is_print=True)
             print_result(result=res, dir=dir_out, filename=output)
             draw_maze(
@@ -147,3 +130,18 @@ if __name__ == '__main__':
                 save={'dir':dir_out, 'filename':output, 'animation':True},
             )
             print('Done!\n')
+
+output = ''
+dir_out = ''
+if __name__ == '__main__':
+    # Solve 1 tiny maze with a single goal.
+    __solve_mazes(sizes=[7], id_nums=[1])
+
+    # Solve 10 small mazes with 2 goals.
+    __solve_mazes(sizes=[17], id_nums=list(range(1, 11)))
+
+    # Solve 2 medium, large and extra large mazes with 1 goal
+    # such that for each size, there is one maze with a goal
+    # close to the start point and another with it far away 
+    # from the start point.
+    __solve_mazes(sizes=[21, 61, 101], id_nums=list(range(1, 3)))

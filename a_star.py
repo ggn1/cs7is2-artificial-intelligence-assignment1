@@ -4,57 +4,76 @@ from queue import PriorityQueue
 from utility import print_result, track_mem_time
 from maze import Maze, load_maze, draw_maze, save_maze
 
-def man_dist(s1, s2):
-    ''' Compute Manhattan distance between 2 given states. '''
-    return np.abs(s1[0] - s2[0]) + np.abs(s1[1] - s2[1])
-
 def euc_dist(s1, s2):
-    ''' Compute Manhattan distance between 2 given states. '''
+    ''' Compute Euclidean distance between 2 given states. '''
     return ((s1[0] - s2[0])**2 + (s1[1] - s2[1])**2)**(1/2)
 
+def get_least_f(fringe):
+    """
+    Returns state in the fringe with least f value.
+    """
+    f_min = None
+    for s, v in fringe.items():
+        if f_min is None or v['f'] < f_min[1]['f']:
+            f_min = (s, v)
+    return f_min[0]
+
 @track_mem_time
-def a_star(maze, is_print, heuristic):
-    global output, dir_out
+def a_star(maze, is_print):
+    global out_dir, out_file
     if is_print:
-        with open(f'{dir_out}/{output}.txt', 'w', encoding='utf-8') as f:
+        with open(f'{out_dir}/{out_file}.txt', 'w', encoding='utf-8') as f:
             f.write(f'MAZE:\n{str(maze)}')
-    to_visit = PriorityQueue()
-    to_visit.put((
-        0 + min([heuristic(maze.start, goal) for goal in maze.goals]), # Priority = f = g + h.
-        maze.start, # position
-        0 # g
-    ))
-    visited = []
+
+    to_visit = {} # Maze positions that are yet to be visited.
+    visited = {} # Maze positions that have already been visited.
+
+    # Add start node to positions to visit. Set 
+    g = 0 # g(s_prime) = g(s) + 1
+    h = min([euc_dist(maze.start, goal) for goal in maze.goals])
+    f = g + h
+    s_prime_fhg = {'f': f, 'h': h, 'g': g}
+    
+    to_visit[maze.start] = {'f': 0, 'h': 0, 'g': 0}
+
     goal_found = None
     parents = {} # Capture node parent-child links to backtrack best path from goal later.
     num_dead_ends = 0 # Keep track of no. of dead ends encountered.
-    while not to_visit.empty(): # While there are nodes yet to be visited ...
-        s3tuple = to_visit.get() # Pop state from the priority queue with least F value.
-        s = s3tuple[1] # Get node position.
-        visited.append(s) # Add this node to list of visited ones.
+    while len(to_visit) > 0: # While there are nodes yet to be visited ...
+        s = get_least_f(fringe=to_visit) # Find state with least F value
+        s_fhg = to_visit.pop(s)       # and remove it from the visited list.
+        visited[s] = s_fhg # Add this state to list of visited ones.
         if s in maze.goals: # If this is a terminal state then end search.
             goal_found = s
             break 
-        # What states do we end up in when upon taking 
-        # each possible action from this state = s_prime.
-        # Only consider states that are valid (not walls) and
-        # have not been visited yet.
+
+        # For each position in the maze that can be visited from this state ...
         s_prime_list = [
-            maze.states[s][a] 
-            for a in maze.actions 
-            if (
-                not maze.states[maze.states[s][a]] is None 
-                and not maze.states[s][a] in visited
-            )
+            maze.states[s][a] for a in maze.actions 
+            if not maze.states[maze.states[s][a]] is None
         ]
-        if len(s_prime_list) == 0: 
+        is_dead_end = True # Assume this is a dead end.
+        for s_prime in s_prime_list:
+            if s_prime in visited: # If s_prime was already visited, skip it this time.
+                continue
+            # Else, compute g, h and f values of s_prime.
+            g = s_fhg['g'] + 1 # g(s_prime) = g(s) + 1
+            h = min([ # h(s_prime) = Manhattan distance from s_prime to nearest goal.
+                euc_dist(s_prime, goal) 
+                for goal in maze.goals
+            ])
+            f = g + h # f(s_prime) = g(s_prime) + h(s_prime)
+            s_prime_fhg = {'f': f, 'h': h, 'g': g}
+            # If the new state is yet to be visited, update
+            # its f, g, h values if current g value is smaller 
+            # than last recorded value.
+            if s_prime in to_visit and s_prime_fhg['f'] >= to_visit[s_prime]['f']:
+                continue
+            to_visit[s_prime] = s_prime_fhg
+            parents[s_prime] = s # Keep track of this node being the parent of this neighbor.
+            is_dead_end = False
+        if is_dead_end:
             num_dead_ends += 1
-        for sp in s_prime_list: # Add each neighbor to priority queue as per F value.
-            g = s3tuple[2] + 1 # G = No. of hops from neighbor to start.
-            h = min([heuristic(maze.start, goal) for goal in maze.goals]) # H = Manhattan/Euclidean distance from neighbor to goal.
-            f = g + h # F = G + H
-            to_visit.put((f, sp, g)) # Add this neighbor to list of nodes to visit.
-            parents[sp] = s # Keep track of this node being the parent of this neighbor.
     
     # Reconstruct continuous solution path from start to goal.
     solution = [] # Keep track of the solution path.
@@ -63,7 +82,7 @@ def a_star(maze, is_print, heuristic):
         solution.append(state_cur) # Add current node to the solution path.
         if not state_cur in parents:
             print("No solution found.")
-            with open(f'{dir_out}/{output}.txt', 'a', encoding='utf-8') as f:
+            with open(f'{out_dir}/{out_file}.txt', 'a', encoding='utf-8') as f:
                 f.write("\nNo solution found.")
                 break
         state_cur = parents[state_cur] # Update current node to be its parent.
@@ -72,45 +91,31 @@ def a_star(maze, is_print, heuristic):
     
     return {
         'solution': solution, # Return path.
-        'exploration': visited, # All the nodes that were visited.
+        'exploration': list(visited.keys()), # All the nodes that were visited.
         'num_nodes_traversed': len(set(visited)), # Return no. of nodes traversed.
         'num_dead_ends': num_dead_ends # Return no. of dead ends encountered.
     }
 
 def __solve_mazes(sizes, id_nums):
-    global output, dir_out
+    global out_file, out_dir
     for maze_size in sizes:
         for i in id_nums:
-            print(f'Solving {maze_size} x {maze_size} maze {i} (Manhattan Distance) ...')
-            output = f'{i}_astar_man'
-            dir_out = f'__mazes/size{maze_size}'
-            maze = Maze(matrix=load_maze(path=f"{dir_out}/{i}.json"))
-            res = a_star(maze, is_print=True, heuristic=man_dist)
-            print_result(result=res, dir=dir_out, filename=output)
+            print(f'Solving {maze_size} x {maze_size} maze {i} ...')
+            out_file = f'{i}_astar'
+            out_dir = f'__mazes/size{maze_size}'
+            maze = Maze(matrix=load_maze(path=f"{out_dir}/{i}.json"))
+            res = a_star(maze, is_print=True)
+            print_result(result=res, dir=out_dir, filename=out_file)
             draw_maze(
                 maze=maze.matrix, 
                 solution=res['solution'], 
                 exploration=res['exploration'],
-                save={'dir':dir_out, 'filename':output, 'animation':True},
+                save={'dir':out_dir, 'filename':out_file, 'animation':True},
             )
             print('Done!\n')
 
-            print(f'Solving {maze_size} x {maze_size} maze {i} (Euclidean Distance) ...')
-            output = f'{i}_astar_euc'
-            dir_out = f'__mazes/size{maze_size}'
-            maze = Maze(matrix=load_maze(path=f"{dir_out}/{i}.json"))
-            res = a_star(maze, is_print=True, heuristic=euc_dist)
-            print_result(result=res, dir=dir_out, filename=output)
-            draw_maze(
-                maze=maze.matrix, 
-                solution=res['solution'], 
-                exploration=res['exploration'],
-                save={'dir':dir_out, 'filename':output, 'animation':True},
-            )
-            print('Done!\n')
-
-output = ''
-dir_out = ''
+out_file = ''
+out_dir = ''
 if __name__ == '__main__':
     # Solve 1 tiny maze with a single goal.
     __solve_mazes(sizes=[7], id_nums=[1])

@@ -3,6 +3,44 @@ import tracemalloc
 import numpy as np
 from maze import draw_maze
 
+def reconstruct_path(parents, start, goal):
+    """
+    Reconstructs the path to start given a goal and a dictionary of node
+    to parent links that were built up while looking for the given goal.
+    """
+    current = goal
+    path = [current]
+    while current != start:
+        current = parents[current]
+        path.append(current)
+    path.reverse() # Reverse the path to go from from start to goal.
+    return path
+
+def solve_maze(solver, maze, is_print, out_file, out_dir):
+    """ 
+    Solves given maze using given solver and 
+    returns path from start to a goal and other metrics. 
+    """
+    res = solver(maze)
+    res['solution'] = [] # Path reconstruction.
+    if res['goal'] is None: # No goal found => no solution.
+        with open(f"{out_dir}/{out_file}.txt", 'a') as f:
+            f.write("\nNo solution found.")
+            print("No solution found.")
+    res['solution'] = reconstruct_path(
+        parents=res['parents'], 
+        start=maze.start, 
+        goal=res['goal']
+    )
+
+    # Optionally print maze and metrics.
+    if is_print:
+        with open(f'{out_dir}/{out_file}.txt', 'w', encoding='utf-8') as f:
+            f.write(f'MAZE:\n{str(maze)}')
+        output_result(result=res, dir=out_dir, filename=out_file)
+
+    return res
+
 def handle_result(res, maze, save_dir, save_filename, save_animation=False):
     ''' Displays path animation and prints 
         given run result for a maze of given shape. 
@@ -17,12 +55,25 @@ def handle_result(res, maze, save_dir, save_filename, save_animation=False):
     print(f"No. of nodes traversed = {res['num_nodes_traversed']}/{maze.shape[0]*maze.shape[1]}")
 
 def values_to_mat(v, shape):
+    """ 
+    Converts given numpy array with MDP state values 
+    of valid states only into a matrix wherein invalid
+    states have value -infinity. This is so that walls
+    are clearly visible against valid states when
+    visualized using matplotlib.
+    """
     mat = np.full(shape, -1*float('inf'))
     for key, val in v.items():
         mat[key] = val
     return mat
 
 def values_to_mat_str(v, shape, start, goals):
+    """
+    Converts given numpy array with MDP state values 
+    into a string representation of the maze wherein
+    walls are represented using the '#' symbol and
+    'S' and 'G' represent the start and goal respectively.  
+    """
     mat = np.full(shape, '#').tolist()
     for key, val in v.items():
         if key == start:
@@ -36,6 +87,11 @@ def values_to_mat_str(v, shape, start, goals):
     return "\n".join(mat)
 
 def policy_to_mat(policy, shape, start, goals):
+    """
+    Converts a given policy into a string representation
+    wherein walls are represented using the '#' symbol and
+    'S' and 'G' represent the start and goal respectively. 
+    """
     mat = np.full(shape, "#").tolist()
     for key, val in policy.items():
         if (key == start): 
@@ -47,7 +103,8 @@ def policy_to_mat(policy, shape, start, goals):
     mat = [str(row) for row in mat]
     return "\n".join(mat)
 
-def print_result(result, dir, filename):
+def output_result(result, dir, filename):
+    """ Given a run result, this function writes it into the given file. """
     with open(f'{dir}/{filename}.txt', 'a', encoding='utf-8') as f:
         f.write(f'\n\nMETRICS:')
         if ("nano_seconds" in result):
@@ -92,7 +149,7 @@ def get_solution(maze, policy, dir_out, file_out):
 def track_mem_time(solver):
     ''' This function will return a wrapper function
         that computes and returns both execution time
-        as well as memory usage of given solver function.
+        as well as memory usage of given solver.
         Any maze solver function that returns a path that
         solves the corresponding maze may be decorated with
         this function.

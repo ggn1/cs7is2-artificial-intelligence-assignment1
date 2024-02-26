@@ -2,7 +2,7 @@
 import random
 import numpy as np
 from maze import draw_maze, load_maze, Maze
-from utility import policy_to_mat, values_to_mat, values_to_mat_str, get_solution, print_result, track_mem_time
+from utility import policy_to_mat, values_to_mat, values_to_mat_str, get_solution, output_result, track_mem_time
 
 def policy_evaluation(maze, V, policy, gamma):
     global output, dir_out
@@ -104,7 +104,7 @@ def policy_iteration(maze, gamma=0.99, is_print=False):
         'num_iterations': k
     }
 
-def __solve_mazes(sizes, id_nums):
+def __conduct_experiments(sizes, id_nums):
     global output, dir_out
     for maze_size in sizes:
         for i in id_nums:
@@ -113,7 +113,7 @@ def __solve_mazes(sizes, id_nums):
             dir_out = f'__mazes/size{maze_size}'
             maze = Maze(matrix=load_maze(path=f"{dir_out}/{i}.json"))
             res = policy_iteration(maze, is_print=True)
-            print_result(result=res, dir=dir_out, filename=output)
+            output_result(result=res, dir=dir_out, filename=output)
             draw_maze(
                 maze=maze.matrix, 
                 solution=res['solution'], 
@@ -126,13 +126,13 @@ output = ''
 dir_out = ''
 if __name__ == '__main__':
     # Solve 1 tiny maze with a single goal.
-    __solve_mazes(sizes=[7], id_nums=[1])
+    __conduct_experiments(sizes=[7], id_nums=[1])
 
     # Solve 10 small mazes with 2 goals.
-    __solve_mazes(sizes=[17], id_nums=list(range(1, 11)))
+    __conduct_experiments(sizes=[17], id_nums=list(range(1, 11)))
 
     # Solve 2 medium, large and extra large mazes with 1 goal
     # such that for each size, there is one maze with a goal
     # close to the start point and another with it far away 
     # from the start point.
-    __solve_mazes(sizes=[21, 61, 101], id_nums=list(range(1, 3)))
+    __conduct_experiments(sizes=[21, 61, 101], id_nums=list(range(1, 3)))

@@ -1,11 +1,8 @@
-# Imports 
 import random
-import numpy as np
 from maze import draw_maze, load_maze, Maze
-from utility import policy_to_mat, values_to_mat, values_to_mat_str, get_solution, output_result, track_mem_time
+from utility import policy_to_mat, values_to_mat, values_to_mat_str, solve_maze, output_result, track_mem_time
 
 def policy_evaluation(maze, V, policy, gamma):
-    global output, dir_out
     """ Evaluates given policy and returns value of each state based on it. """
     # For each state ...
     Vold = V.copy()
@@ -28,8 +25,7 @@ def policy_evaluation(maze, V, policy, gamma):
         V[s] = u # keep track of computed value.
     return V
 
-def policy_improvement(maze, V, gamma):
-    global output, dir_out
+def policy_improvement(maze, V, gamma): 
     """ Updates given policy to be optimized as per latest values of each state. """
     policy = {}
     for s in maze.state_positions:
@@ -52,13 +48,7 @@ def policy_improvement(maze, V, gamma):
     return policy
 
 @track_mem_time
-def policy_iteration(maze, gamma=0.99, is_print=False):
-    global output, dir_out
-    if is_print: 
-        with open(f'{dir_out}/{output}.txt', 'w', encoding="utf-8") as f:
-            f.write('Maze:\n')
-            f.write(str(maze))
-
+def policy_iteration(maze, out_file, out_dir, gamma=0.99):
     # Initially,
     V = {}
     policy = {}
@@ -80,50 +70,46 @@ def policy_iteration(maze, gamma=0.99, is_print=False):
         converged = all(policy_improved[s] == policy[s] for s in maze.state_positions)
         policy = policy_improved # Else, prep for next round of evaluation and improvement.
         k += 1
-        if is_print:
-            with open(f'{dir_out}/{output}.txt', 'a', encoding="utf-8") as f:
-                f.write(f'\n\nIteration {k}:\n')
-                f.write(values_to_mat_str(
-                    v=V, shape=maze.matrix.shape, 
-                    start=maze.start, goals=maze.goals
-                ))
-            with open(f'{dir_out}/{output}.txt', 'a', encoding="utf-8") as f:
-                f.write(f'\nPolicy:\n')
-                f.write(str(policy_to_mat(
-                    policy=policy, shape=maze.matrix.shape, 
-                    start=maze.start, goals=maze.goals
-                )))
-    
-    # Once policy has converged, get the best path to goal based on it.
-    solution = get_solution(maze, policy, dir_out=dir_out, file_out=output)
+        with open(f'{out_dir}/{out_file}.txt', 'a', encoding="utf-8") as f:
+            f.write(f'\n\nIteration {k}:\n')
+            f.write(values_to_mat_str(
+                v=V, shape=maze.matrix.shape, 
+                start=maze.start, goals=maze.goals
+            ))
+        with open(f'{out_dir}/{out_file}.txt', 'a', encoding="utf-8") as f:
+            f.write(f'\nPolicy:\n')
+            f.write(str(policy_to_mat(
+                policy=policy, shape=maze.matrix.shape, 
+                start=maze.start, goals=maze.goals
+            )))
 
     return {
-        'solution': solution, 
         'state_values': values_to_mat(V, maze.matrix.shape),
         'policy': policy,
         'num_iterations': k
     }
 
 def __conduct_experiments(sizes, id_nums):
-    global output, dir_out
     for maze_size in sizes:
         for i in id_nums:
             print(f'Solving {maze_size} x {maze_size} maze {i} ...')
-            output = f'{i}_politer'
-            dir_out = f'__mazes/size{maze_size}'
-            maze = Maze(matrix=load_maze(path=f"{dir_out}/{i}.json"))
-            res = policy_iteration(maze, is_print=True)
-            output_result(result=res, dir=dir_out, filename=output)
+            out_file = f'{i}_politer'
+            out_dir = f'__mazes/size{maze_size}'
+            maze = Maze(matrix=load_maze(path=f"{out_dir}/{i}.json"))
+            res = solve_maze(
+                solver_type='policy-iteration',
+                solver=policy_iteration, maze=maze, 
+                out_dir=out_dir, out_file=out_file, 
+                gamma=0.99, epsilon=1e-6
+            )
             draw_maze(
                 maze=maze.matrix, 
                 solution=res['solution'], 
                 state_values=res['state_values'],
-                save={'dir':dir_out, 'filename':output, 'animation':True},
+                save={'dir':out_dir, 'filename':out_file, 'animation':True},
             )
             print('Done!\n')
 
-output = ''
-dir_out = ''
 if __name__ == '__main__':
     # Solve 1 tiny maze with a single goal.
     __conduct_experiments(sizes=[7], id_nums=[1])

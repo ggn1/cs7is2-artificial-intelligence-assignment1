@@ -1,7 +1,6 @@
 import time
 import tracemalloc
 import numpy as np
-from maze import draw_maze
 
 def reconstruct_path(parents, start, goal):
     """
@@ -15,44 +14,6 @@ def reconstruct_path(parents, start, goal):
         path.append(current)
     path.reverse() # Reverse the path to go from from start to goal.
     return path
-
-def solve_maze(solver, maze, is_print, out_file, out_dir):
-    """ 
-    Solves given maze using given solver and 
-    returns path from start to a goal and other metrics. 
-    """
-    res = solver(maze)
-    res['solution'] = [] # Path reconstruction.
-    if res['goal'] is None: # No goal found => no solution.
-        with open(f"{out_dir}/{out_file}.txt", 'a') as f:
-            f.write("\nNo solution found.")
-            print("No solution found.")
-    res['solution'] = reconstruct_path(
-        parents=res['parents'], 
-        start=maze.start, 
-        goal=res['goal']
-    )
-
-    # Optionally print maze and metrics.
-    if is_print:
-        with open(f'{out_dir}/{out_file}.txt', 'w', encoding='utf-8') as f:
-            f.write(f'MAZE:\n{str(maze)}')
-        output_result(result=res, dir=out_dir, filename=out_file)
-
-    return res
-
-def handle_result(res, maze, save_dir, save_filename, save_animation=False):
-    ''' Displays path animation and prints 
-        given run result for a maze of given shape. 
-    '''
-    draw_maze(
-        maze=maze, path=res['path'], exploration=res['exploration'],
-        save_dir=save_dir, save_filename=save_filename, save_animation=save_animation
-    )
-    print(f"\nMAZE ({maze.shape[0]} x {maze.shape[1]}):")
-    print(f"Execution time = {res['seconds']} seconds")
-    print(f"No. of dead ends = {res['num_dead_ends']}")
-    print(f"No. of nodes traversed = {res['num_nodes_traversed']}/{maze.shape[0]*maze.shape[1]}")
 
 def values_to_mat(v, shape):
     """ 
@@ -103,9 +64,9 @@ def policy_to_mat(policy, shape, start, goals):
     mat = [str(row) for row in mat]
     return "\n".join(mat)
 
-def output_result(result, dir, filename):
+def output_result(result, out_dir, out_file):
     """ Given a run result, this function writes it into the given file. """
-    with open(f'{dir}/{filename}.txt', 'a', encoding='utf-8') as f:
+    with open(f'{out_dir}/{out_file}.txt', 'a', encoding='utf-8') as f:
         f.write(f'\n\nMETRICS:')
         if ("nano_seconds" in result):
             f.write(f'\nTime taken = {result["nano_seconds"]} nano seconds')
@@ -115,36 +76,75 @@ def output_result(result, dir, filename):
             f.write(f"\nSolution path size = {len(result['solution'])} positions")
         if ("num_nodes_traversed" in result):
             f.write(f'\nNo. of positions traversed = {result["num_nodes_traversed"]}')
-        if ("num_dead_ends" in result):
-            f.write(f'\nNo. of dead ends = {result["num_dead_ends"]}')
         if ("num_iterations" in result):
             f.write(f"\nNo. of iterations = {result["num_iterations"]}")
 
-def get_solution(maze, policy, dir_out, file_out):
+def solve_maze(solver_type, solver, maze, out_dir, out_file, gamma=None, epsilon=None):
     """ 
-    Given returns the solution (path from start 
-    to goal) to the given maze as per given policy.
+    Solves given maze using given solver and 
+    returns path from start to a goal and other metrics. 
     """
-    print('Getting solution ...')
-    s =  maze.start # Begin at the start state.
-    solution = [s]
-    while (not s in maze.goals): # Until the goal state is reached ...
-        if not s in policy:
-            print('No solution found.')
-            with open(f'{dir_out}/{file_out}.txt', 'a', encoding='utf-8') as f:
-                f.write("\n\nNo solution found.")
-            break
-        actions = policy[s]
-        a = actions[0] # Get best action for this state as per policy.
-        s_prime = maze.states[s][a] # Get next state as per policy.
-        if (s_prime in solution): # I step loop.
-            print('Loop')
-            with open(f'{dir_out}/{file_out}.txt', 'a', encoding='utf-8') as f:
-                f.write("\nLoop")
-            break
-        solution.append(s_prime) # Append state to the solution.
-        s = s_prime
-    return solution
+    # Output maze.
+    with open(f'{out_dir}/{out_file}.txt', 'w', encoding='utf-8') as f:
+        f.write(f'MAZE:\n{str(maze)}')
+
+    # Call solver with appropriate arguments as per whether
+    # it is a 'search' or 'mdp' solver.
+    solution_type = '' 
+    if solver_type in ['dfs', 'bfs', 'a-star']:
+        res = solver(maze)
+        solution_type = 'search'
+    elif solver_type == 'value-iteration':
+        res = solver(maze=maze, out_dir=out_dir, out_file=out_file, gamma=gamma, epsilon=epsilon)
+        solution_type = 'mdp'
+    elif solver_type == 'policy-iteration':
+        res = solver(maze=maze, out_dir=out_dir, out_file=out_file, gamma=gamma)
+        solution_type = 'mdp'
+    else: # Throw an exception if the solver is invalid.
+        raise Exception(f'Invalid solver type "{solver_type}".')
+    
+    # Extract solution using the appropriate method
+    # for each kind of solver.
+    if solution_type == 'mdp':
+        print('Extracting solution from policy ...')
+        s =  maze.start # Begin at the start state.
+        solution = [s]
+        while (not s in maze.goals): # Until the goal state is reached ...
+            if not s in res['policy']:
+                print('No solution found.')
+                with open(f'{out_dir}/{out_file}.txt', 'a', encoding='utf-8') as f:
+                    f.write("\n\nNo solution found.")
+                break
+            actions = res['policy'][s]
+            a = actions[0] # Get best action for this state as per policy.
+            s_prime = maze.states[s][a] # Get next state as per policy.
+            if (s_prime in solution): # s' in the solution already => loop
+                print('Loop')
+                with open(f'{out_dir}/{out_file}.txt', 'a', encoding='utf-8') as f:
+                    f.write("\nLoop")
+                break
+            solution.append(s_prime) # Append state to the solution.
+            s = s_prime # s' is s in the next iteration
+        
+        res['solution'] = solution
+
+    else: # solution_type == 'search'
+        res['solution'] = [] # Path reconstruction.
+        if res['goal'] is None: # No goal found => no solution.
+            with open(f"{out_dir}/{out_file}.txt", 'a') as f:
+                f.write("\nNo solution found.")
+                print("No solution found.")
+        res['solution'] = reconstruct_path(
+            parents=res['parents'], 
+            start=maze.start, 
+            goal=res['goal']
+        )
+
+    # Output performance metrics.
+    output_result(result=res, out_dir=out_dir, out_file=out_file)
+
+    # Return result.
+    return res
 
 def track_mem_time(solver):
     ''' This function will return a wrapper function

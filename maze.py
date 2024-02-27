@@ -1,5 +1,3 @@
-# Code for maze generation and display from: https://medium.com/@msgold/using-python-to-create-and-solve-mazes-672285723c96.
-
 import json
 import random
 import numpy as np
@@ -8,12 +6,8 @@ import matplotlib.pyplot as plt
 from maze_state import MazeState
 import matplotlib.animation as animation
 
-# wall = 0
-# space = 1
-# start = 3
-# goal = 2
-
 def draw_maze(maze, save=None, solution=None, exploration=None, state_values=None):
+    """ Visualizes given maze. """
 
     if not state_values is None:
         fig, axes = plt.subplots(ncols=2, nrows=1, figsize=(10,5))
@@ -130,11 +124,11 @@ def draw_maze(maze, save=None, solution=None, exploration=None, state_values=Non
     if not save == None:
         fig.savefig(f'{save['dir']}/{save['filename']}.png')
 
-def save_maze(maze, dir, filename):
+def save_maze(maze, out_dir, out_file):
     ''' Saves given maze in a json file with the 
         given name in the given directory. 
     '''
-    with open(f'{dir}/{filename}.json', 'w') as f:
+    with open(f'{out_dir}/{out_file}.json', 'w') as f:
         json.dump(maze.matrix.tolist(), f)
 
 def load_maze(path):
@@ -146,6 +140,7 @@ def load_maze(path):
     return matrix
 
 class Maze():
+    """ Maze. """
     def __init__(self, start=(1, 1), goals=[], matrix=None, dim=20, num_goals=1):
         self.start = start
         if type(matrix) != type(None): # If the maze is given, and thus is not None ...
@@ -168,12 +163,14 @@ class Maze():
                     goals.append((i, j))
         return goals
 
-    def __create_maze(self, num_goals, goals):
-        # wall = 0
-        # space = 1
-        # start = 3
-        # goal = 2   
-           
+    def __create_maze(self, num_goals, goals=[]):
+        """ Creates a new maze with given no. of goals
+            and specific goals (goal positions).
+            # wall = 0
+            # space = 1
+            # start = 3
+            # goal = 2
+        """
         # Initialize the stack with the starting point
         stack = [self.start]
         while len(stack) > 0:
@@ -249,6 +246,11 @@ class Maze():
         return states, state_positions
 
     def __str__(self):
+        """ 
+        Prints the matrix of the maze as a string with walls 
+        represented by '#', space by ' ', start position by 'S',
+        and goal positions by 'G'.
+        """
         mat = np.full(self.matrix.shape, "#")
         for p in self.state_positions:
             mat[p] = " "
@@ -289,6 +291,6 @@ class Maze():
         @param a: Action taken.
         @param s_prime: Next state.
         """
-        if s in self.goals: 
+        if s in self.goals: # If this is the goal, then large positive reward.
             return (self.matrix.shape[0]**3)
-        return 0
+        return 0 # Else, no reward.

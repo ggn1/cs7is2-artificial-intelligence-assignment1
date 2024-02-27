@@ -13,7 +13,6 @@ def a_star(maze):
     parents = {} # Keep track of parents of each node for path reconstruction from goal later.
     g = {} # For each position n in the maze, keep track of distance from start = g(n).
     goal = None # Goal found.
-    num_dead_ends = 0 # No. of dead ends encountered.
 
     # Initialize data structures.
     fringe.put((0, maze.start)) # Initially, fringe has only start node n with f(n) = 0.
@@ -37,10 +36,6 @@ def a_star(maze):
             maze.states[s][a] for a in maze.actions 
             if not maze.states[maze.states[s][a]] is None
         ]
-
-        # Count dead ends.
-        if len(s_prime_list) == 0: # If no valid next states were found, 
-            num_dead_ends += 1 # then this was a dead end.
 
         # For every next state ...
         for s_prime in s_prime_list:
@@ -67,7 +62,6 @@ def a_star(maze):
     return {
         'parents': parents,
         'goal': goal,
-        'num_dead_ends': num_dead_ends,
         'num_nodes_traversed': len(parents)
     }
 
@@ -79,7 +73,10 @@ def __conduct_experiments(sizes, id_nums):
             out_file = f'{i}_astar'
             out_dir = f'__mazes/size{maze_size}'
             maze = Maze(matrix=load_maze(path=f"{out_dir}/{i}.json"))
-            res = solve_maze(solver=a_star, maze=maze, is_print=True, out_file=out_file, out_dir=out_dir)
+            res = solve_maze(
+                solver_type='a-star', solver=a_star, maze=maze, 
+                out_file=out_file, out_dir=out_dir
+            )
             draw_maze(
                 maze=maze.matrix, 
                 solution=res['solution'], 

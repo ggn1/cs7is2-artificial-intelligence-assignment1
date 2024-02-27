@@ -8,7 +8,6 @@ def dfs(maze):
     fringe = LifoQueue() # Create LIFO stack of nodes to visit.
     parents = {} # Keep track of node relationships.
     goal = None # Goal found.
-    num_dead_ends = 0 # No. of dead ends encountered.
 
     # Initialize data structures.
     fringe.put(maze.start) # Initially, fringe has only start position or node.
@@ -29,10 +28,6 @@ def dfs(maze):
             if not maze.states[maze.states[s][a]] is None
         ]
 
-        # Count dead ends.
-        if len(s_prime_list) == 0: # If no valid next states were found, 
-            num_dead_ends += 1 # then this was a dead end.
-
         # For every next state ...
         for s_prime in s_prime_list:
             if not s_prime in parents: # If this node has not yet been visited ...                
@@ -42,7 +37,6 @@ def dfs(maze):
     return {
         'parents': parents,
         'goal': goal,
-        'num_dead_ends': num_dead_ends,
         'num_nodes_traversed': len(parents)
     }
 
@@ -54,7 +48,10 @@ def __conduct_experiments(sizes, id_nums):
             out_file = f'{i}_dfs'
             out_dir = f'__mazes/size{maze_size}'
             maze = Maze(matrix=load_maze(path=f"{out_dir}/{i}.json"))
-            res = solve_maze(solver=dfs, maze=maze, is_print=True, out_file=out_file, out_dir=out_dir)
+            res = solve_maze(
+                solver_type='dfs', solver=dfs, maze=maze,
+                out_file=out_file, out_dir=out_dir
+            )
             draw_maze(
                 maze=maze.matrix, 
                 solution=res['solution'], 

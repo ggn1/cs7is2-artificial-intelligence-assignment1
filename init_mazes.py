@@ -26,8 +26,11 @@ def init_mazes(dims, num_mazes, num_goals, folder):
 # for assignment 1 experiments.
 
 if __name__ == "__main__":
-    # 1 maze each of varying sizes [7x7, 15x15, 21x21, 61x61, 101x101] 1 goal.
-    init_mazes(dims=[3, 7, 10, 30, 50], num_mazes=1, num_goals=1, folder="./__mazes")
+    # 1 maze each of varying sizes [7x7, 15x15] with 1 goal.
+    init_mazes(dims=[3, 7], num_mazes=1, num_goals=1, folder="./__mazes")
+
+    # 3 mazes of varying sizes [21x21, 61x61, 101x101] with 1 goal.
+    init_mazes(dims=[10, 30, 50], num_mazes=3, num_goals=1, folder="./__mazes")
 
     # 20 31x31 mazes with 2 goals.
     # This is so that 5 mazes can manually be extracted 

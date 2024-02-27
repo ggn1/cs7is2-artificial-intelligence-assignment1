@@ -63,7 +63,10 @@ def __conduct_experiments(sizes, id_nums):
 if __name__ == '__main__':
     """ Triggers solving of all mazes as required for assignment 1 experiments. """
     # Solve 1 maze each of varying sizes with 1 goal.
-    __conduct_experiments(sizes=[7, 15, 21, 61, 101], id_nums=[1])
+    __conduct_experiments(sizes=[7, 15], id_nums=[1])
+
+    # Solve 3 mazes each of varying sizes with 1 goal.
+    __conduct_experiments(sizes=[21, 61, 101], id_nums=list(range(1, 4)))
     
     # Solve 5 31x31 mazes with 2 goals.
     __conduct_experiments(sizes=[31], id_nums=list(range(1, 6)))

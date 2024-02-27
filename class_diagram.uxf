@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.0.0">
+  <zoom_level>7</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>49</x>
+      <y>140</y>
+      <w>273</w>
+      <h>203</h>
+    </coordinates>
+    <panel_attributes>Maze
+--
+- dim: int
++ matrix: list&lt;&lt;int&gt;&gt;[dim*2+1, dim*2+1]
++ goals: list&lt;&lt;tuple&lt;&lt;int&gt;&gt;[2]&gt;&gt;[0&lt;=n&lt;dim*2+1]
++ start: tuple&lt;&lt;int&gt;&gt;[2]
++ states: list&lt;&lt;MazeState&gt;&gt;[0&lt;n&lt;dim*2+1, 0&lt;m&lt;dim*2+1]
++ state_positions: list&lt;&lt;tuple&lt;&lt;int&gt;&gt;[2]&gt;&gt;[0&lt;n&lt;(dim*2+1)^2]
++ actions: list&lt;&lt;string&gt;&gt;[4] = ["↑", "→", "↓", "←"]
+--
+- create_maze(num_goals: int)
+- find_goals(): goals: list&lt;&lt;tuple&lt;&lt;int&gt;&gt;[2]&gt;&gt;[0&lt;=n&lt;dim*2+1]
+- get_states(): 
+    states: list&lt;&lt;MazeState&gt;&gt;[0&lt;n&lt;dim*2+1, 0&lt;m&lt;dim*2+1], 
+    state_positions: list&lt;&lt;tuple&lt;&lt;int&gt;&gt;[2]&gt;&gt;[0&lt;n&lt;(dim*2+1)^2]
++ __str__(): string
++ T(s: tuple&lt;&lt;int&gt;&gt;[2], a: string, s_prime: tuple&lt;&lt;int&gt;&gt;[2]): int
++ R(s: tuple&lt;&lt;int&gt;&gt;[2], a: string, s_prime: tuple&lt;&lt;int&gt;&gt;[2]): int</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>406</x>
+      <y>210</y>
+      <w>231</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>MazeState
+--
++ surroundings: dictionary&lt;&lt;string, tuple&lt;&lt;int&gt;&gt;[2]&gt;&gt;[4]
+--
++ __str__(): string
++ __getitem__(key:string): tuple&lt;&lt;int&gt;&gt;[2]</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>315</x>
+      <y>231</y>
+      <w>105</w>
+      <h>35</h>
+    </coordinates>
+    <panel_attributes>lt=-
+m1=1
+m2=1..*
+has</panel_attributes>
+    <additional_attributes>10.0;20.0;130.0;20.0</additional_attributes>
+  </element>
+</diagram>

@@ -134,14 +134,29 @@ def __conduct_experiments(sizes, id_nums):
             print('Done!\n')
 
 if __name__ == '__main__':
-    # Solve 1 tiny maze with a single goal.
-    __conduct_experiments(sizes=[7], id_nums=[1])
+    # Solve 1 maze each of varying sizes with 1 goal.
+    __conduct_experiments(sizes=[7, 15, 21, 61, 101], id_nums=[1])
+    
+    # Solve 5 31x31 mazes with 2 goals.
+    __conduct_experiments(sizes=[31], id_nums=list(range(1, 6)))
 
-    # Solve 10 small mazes with 2 goals.
-    __conduct_experiments(sizes=[17], id_nums=list(range(1, 11)))
-
-    # Solve 2 medium, large and extra large mazes with 1 goal
-    # such that for each size, there is one maze with a goal
-    # close to the start point and another with it far away 
-    # from the start point.
-    __conduct_experiments(sizes=[21, 61, 101], id_nums=list(range(1, 3)))
+    # Trying different values of epsilon.
+    maze_size = 15
+    for epsilon in [1e5, 150, 0]:
+        print(f'Solving {maze_size} x {maze_size} maze 1 epsilon = {epsilon}...')
+        out_file = f'1_valiter_epsilon{epsilon}'
+        out_dir = f'__mazes/size{maze_size}'
+        maze = Maze(matrix=load_maze(path=f"{out_dir}/1.json"))
+        res = solve_maze(
+            solver_type='value-iteration',
+            solver=value_iteration, maze=maze, 
+            out_dir=out_dir, out_file=out_file, 
+            gamma=0.99, epsilon=epsilon
+        )
+        draw_maze(
+            maze=maze.matrix, 
+            solution=res['solution'], 
+            state_values=res['state_values'],
+            save={'dir':out_dir, 'filename':out_file, 'animation':True},
+        )
+        print('Done!\n')

@@ -62,14 +62,8 @@ def __conduct_experiments(sizes, id_nums):
 
 if __name__ == '__main__':
     """ Triggers solving of all mazes as required for assignment 1 experiments. """
-    # Solve 1 tiny maze with a single goal.
-    __conduct_experiments(sizes=[7], id_nums=[1])
-
-    # Solve 10 small mazes with 2 goals.
-    __conduct_experiments(sizes=[17], id_nums=list(range(1, 11)))
-
-    # Solve 2 medium, large and extra large mazes with 1 goal
-    # such that for each size, there is one maze with a goal
-    # close to the start point and another with it far away 
-    # from the start point.
-    __conduct_experiments(sizes=[21, 61, 101], id_nums=list(range(1, 3)))
+    # Solve 1 maze each of varying sizes with 1 goal.
+    __conduct_experiments(sizes=[7, 15, 21, 61, 101], id_nums=[1])
+    
+    # Solve 5 31x31 mazes with 2 goals.
+    __conduct_experiments(sizes=[31], id_nums=list(range(1, 6)))

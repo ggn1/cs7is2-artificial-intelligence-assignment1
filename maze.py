@@ -1,7 +1,6 @@
 import json
 import random
 import numpy as np
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 from maze_state import MazeState
 import matplotlib.animation as animation
@@ -141,21 +140,21 @@ def load_maze(path):
 
 class Maze():
     """ Maze. """
-    def __init__(self, start=(1, 1), goals=[], matrix=None, dim=20, num_goals=1):
+    def __init__(self, start=(1, 1), matrix=None, dim=20, num_goals=1):
         self.start = start
         if type(matrix) != type(None): # If the maze is given, and thus is not None ...
-            self.matrix = matrix
+            self.matrix = matrix # Set matrix to given one.
             self.goals = self.__find_goals() # Find the goal.
-            self.__dim = (self.matrix.shape[0]-1)//2
+            self.__dim = (self.matrix.shape[0]-1)//2 # Get dimension input to generate the maze.
         else:
-            self.__dim = dim # Input dimension = 20 By default.
-            self.matrix = np.zeros((dim*2+1, dim*2+1)) # Create a grid filled with walls only.
-            self.__create_maze(num_goals=num_goals, goals=goals) # Sets goal.
-        self.actions = ["↑", "→", "↓", "←"]
-        self.states, self.state_positions = self.__get_states()
+            self.__dim = dim # Input dimension = 20 by default => maze size (20*2+1 x 20*2+1).
+            self.matrix = np.zeros((dim*2+1, dim*2+1)) # Create a grid filled with walls (0s) only.
+            self.__create_maze(num_goals=num_goals) # Add spaces, start and goal(s).
+        self.actions = ["↑", "→", "↓", "←"] # Up, right, down, left.
+        self.states, self.state_positions = self.__get_states() # Get valid (not walls and inside maze) states. 
 
     def __find_goals(self):
-        ''' Return position of the goal in this maze. '''
+        ''' Return position of goals in this maze. '''
         goals = []
         for i in range(0, self.matrix.shape[0]):
             for j in range(0, self.matrix.shape[1]):
@@ -163,9 +162,8 @@ class Maze():
                     goals.append((i, j))
         return goals
 
-    def __create_maze(self, num_goals, goals=[]):
-        """ Creates a new maze with given no. of goals
-            and specific goals (goal positions).
+    def __create_maze(self, num_goals):
+        """ Creates a new maze with given no. of goals.
             # wall = 0
             # space = 1
             # start = 3
@@ -198,14 +196,28 @@ class Maze():
         # Create goals.
         goals_new = []
         while(len(goals_new) < num_goals):
-            if len(goals) == 0:
+            goal = (random.randint(1, 2*self.__dim-1), random.randint(2, 2*self.__dim))
+            while ( 
+                self.matrix[goal] != 0 or # If goal is not a wall or 
+                (( # if there is a wall/nothing to the top of the goal
+                    goal[1]-1 < 0
+                    or goal[1]-1 >= self.matrix.shape[1]
+                    or self.matrix[goal[0], goal[1]-1] == 0
+                ) and ( # and there is a wall/nothing to the right of the goal
+                    goal[0]+1 < 0
+                    or goal[0]+1 >= self.matrix.shape[0]
+                    or self.matrix[goal[0]+1, goal[1]] == 0
+                ) and ( # and there is a wall/nothing to the bottom of the goal
+                    goal[1]-1 < 0
+                    or goal[1]+1 >= self.matrix.shape[1]
+                    or self.matrix[goal[0], goal[1]+1] == 0
+                ) and ( # and there is a wall/nothing to the left of the goal
+                    goal[0]-1 < 0
+                    or goal[0]-1 >= self.matrix.shape[0]
+                    or self.matrix[goal[0]-1, goal[1]] == 0
+                ))
+            ): # then, look again ...
                 goal = (random.randint(1, 2*self.__dim-1), random.randint(2, 2*self.__dim))
-            else:
-                goal = goals.pop(0)
-            while( # If goal is start or another goal, look again.
-                goal == self.start or 
-                self.matrix[goal] == 2 
-            ): goal = (random.randint(1, 2*self.__dim-1), random.randint(2, 2*self.__dim))
             self.matrix[goal] = 2 # goal = 2
             goals_new.append(goal)
         self.goals = goals_new

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <diagram program="umlet" version="15.0.0">
-  <zoom_level>7</zoom_level>
+  <zoom_level>8</zoom_level>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>49</x>
-      <y>140</y>
-      <w>273</w>
-      <h>203</h>
+      <x>88</x>
+      <y>112</y>
+      <w>296</w>
+      <h>232</h>
     </coordinates>
     <panel_attributes>Maze
 --
@@ -26,16 +26,16 @@
     state_positions: list&lt;&lt;tuple&lt;&lt;int&gt;&gt;[2]&gt;&gt;[0&lt;n&lt;(dim*2+1)^2]
 + __str__(): string
 + T(s: tuple&lt;&lt;int&gt;&gt;[2], a: string, s_prime: tuple&lt;&lt;int&gt;&gt;[2]): int
-+ R(s: tuple&lt;&lt;int&gt;&gt;[2], a: string, s_prime: tuple&lt;&lt;int&gt;&gt;[2]): int</panel_attributes>
++ R(s: tuple&lt;&lt;int&gt;&gt;[2]): int</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>406</x>
-      <y>210</y>
-      <w>231</w>
-      <h>70</h>
+      <x>496</x>
+      <y>192</y>
+      <w>264</w>
+      <h>80</h>
     </coordinates>
     <panel_attributes>MazeState
 --
@@ -48,15 +48,15 @@
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>315</x>
-      <y>231</y>
-      <w>105</w>
-      <h>35</h>
+      <x>376</x>
+      <y>216</y>
+      <w>136</w>
+      <h>40</h>
     </coordinates>
     <panel_attributes>lt=-
 m1=1
 m2=1..*
 has</panel_attributes>
-    <additional_attributes>10.0;20.0;130.0;20.0</additional_attributes>
+    <additional_attributes>10.0;20.0;150.0;20.0</additional_attributes>
   </element>
 </diagram>

@@ -29,7 +29,7 @@ def update_values(maze, gamma, epsilon, out_file, out_dir):
                     if (transitionProb > 0):
                         # Get reward.
                         reward = (
-                            maze.R(s, a, s_prime) + # Immediate reward + 
+                            maze.R(s) + # Immediate reward + 
                             (gamma * V_old[s_prime]) # discounted future reward.
                         )
                         # Compute utility.
@@ -71,7 +71,7 @@ def extract_policy(maze, state_values, gamma, out_file, out_dir):
                 if (transitionProb > 0):
                     # Get reward.
                     reward = (
-                        maze.R(s, a, s_prime) + # Immediate reward + 
+                        maze.R(s) + # Immediate reward + 
                         (gamma * state_values[s_prime]) # discounted future reward.
                     )
                     # Compute utility.

@@ -6,10 +6,6 @@ def man_dist(s1, s2):
     """ Compute Manhattan distance between 2 given states. """
     return abs(s1[0] - s2[0])+ abs(s1[1] - s2[1])
 
-def man_dist(s1, s2):
-    """ Compute Manhattan distance between 2 given states. """
-    return abs(s1[0] - s2[0])+ abs(s1[1] - s2[1])
-
 @track_mem_time
 def a_star(maze):
     """ A* search. """

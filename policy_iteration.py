@@ -18,7 +18,7 @@ def policy_evaluation(maze, V, policy, gamma):
             # This shall not affect end result as 0 * anything = 0.
             if (transitionProb > 0): 
                 reward = (
-                    maze.R(s, a, s_prime) + # Immediate reward + 
+                    maze.R(s) + # Immediate reward + 
                     (gamma * Vold[s_prime]) # Discounted future reward.
                 )
                 u += transitionProb * reward
@@ -38,7 +38,7 @@ def policy_improvement(maze, V, gamma):
                 transition_prob = maze.T(s, a, s_prime)
                 if (transition_prob > 0):
                     reward = (
-                        maze.R(s, a, s_prime) + # Immediate reward + 
+                        maze.R(s) + # Immediate reward + 
                         (gamma * V[s_prime]) # Discounted future reward.
                     )
                     u += transition_prob * reward

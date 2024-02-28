@@ -294,14 +294,12 @@ class Maze():
         # same and 0.0 otherwise.
         return int(s_prime == s_prime_true)
 
-    def R(self, s, a, s_prime):
+    def R(self, s):
         """ 
         Rewards function which when given a state s and action a,
         returns the reward of taking action a in state s to end
         up in state s_prime.
         @param s: Current state.
-        @param a: Action taken.
-        @param s_prime: Next state.
         """
         if s in self.goals: # If this is the goal, then large positive reward.
             return (self.matrix.shape[0]**3)

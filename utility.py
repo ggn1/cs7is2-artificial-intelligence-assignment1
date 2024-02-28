@@ -79,6 +79,32 @@ def output_result(result, out_dir, out_file):
         if ("num_iterations" in result):
             f.write(f"\nNo. of iterations = {result["num_iterations"]}")
 
+def extract_solution_mdp(maze, policy, out_dir, out_file):
+    """ 
+    Given a policy for a given maze, returns path from start
+    to a goal if possible, as per that policy.
+    """
+    s =  maze.start # Begin at the start state.
+    solution = [s]
+    while (not s in maze.goals): # Until the goal state is reached ...
+        if not s in policy:
+            print('No solution found.')
+            with open(f'{out_dir}/{out_file}.txt', 'a', encoding='utf-8') as f:
+                f.write("\n\nNo solution found.")
+            return solution
+            break
+        actions = policy[s]
+        a = actions[0] # Get best action for this state as per policy.
+        s_prime = maze.states[s][a] # Get next state as per policy.
+        if (s_prime in solution): # s' in the solution already => loop
+            print('Loop')
+            with open(f'{out_dir}/{out_file}.txt', 'a', encoding='utf-8') as f:
+                f.write("\nLoop")
+            break
+        solution.append(s_prime) # Append state to the solution.
+        s = s_prime # s' is s in the next iteration
+    return solution
+
 def solve_maze(solver_type, solver, maze, out_dir, out_file, gamma=None, epsilon=None):
     """ 
     Solves given maze using given solver and 
@@ -107,26 +133,10 @@ def solve_maze(solver_type, solver, maze, out_dir, out_file, gamma=None, epsilon
     # for each kind of solver.
     if solution_type == 'mdp':
         print('Extracting solution from policy ...')
-        s =  maze.start # Begin at the start state.
-        solution = [s]
-        while (not s in maze.goals): # Until the goal state is reached ...
-            if not s in res['policy']:
-                print('No solution found.')
-                with open(f'{out_dir}/{out_file}.txt', 'a', encoding='utf-8') as f:
-                    f.write("\n\nNo solution found.")
-                break
-            actions = res['policy'][s]
-            a = actions[0] # Get best action for this state as per policy.
-            s_prime = maze.states[s][a] # Get next state as per policy.
-            if (s_prime in solution): # s' in the solution already => loop
-                print('Loop')
-                with open(f'{out_dir}/{out_file}.txt', 'a', encoding='utf-8') as f:
-                    f.write("\nLoop")
-                break
-            solution.append(s_prime) # Append state to the solution.
-            s = s_prime # s' is s in the next iteration
-        
-        res['solution'] = solution
+        res['solution'] = extract_solution_mdp(
+            maze=maze, policy=res['policy'], 
+            out_dir=out_dir, out_file=out_file
+        )
 
     else: # solution_type == 'search'
         res['solution'] = [] # Path reconstruction.

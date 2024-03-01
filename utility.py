@@ -3,6 +3,8 @@ import time
 import tracemalloc
 import numpy as np
 
+# This file contains functions that are used by multiple other files.
+
 def reconstruct_path(parents, start, goal):
     """
     Reconstructs the path to start given a goal and a dictionary of node
@@ -106,7 +108,7 @@ def extract_solution_mdp(maze, policy, out_dir, out_file):
         s = s_prime # s' is s in the next iteration
     return solution
 
-def solve_maze(solver_type, solver, maze, out_dir, out_file, gamma, epsilon=None, max_iters=None):
+def solve_maze(solver_type, solver, maze, out_dir, out_file, gamma=None, epsilon=None, max_iters=None):
     """ 
     Solves given maze using given solver and 
     returns path from start to a goal and other metrics. 

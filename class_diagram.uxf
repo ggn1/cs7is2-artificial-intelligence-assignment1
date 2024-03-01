@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <diagram program="umlet" version="15.0.0">
-  <zoom_level>12</zoom_level>
+  <zoom_level>10</zoom_level>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>12</x>
-      <y>60</y>
-      <w>444</w>
-      <h>348</h>
+      <x>70</x>
+      <y>100</y>
+      <w>370</w>
+      <h>330</h>
     </coordinates>
     <panel_attributes>Maze
 --
@@ -35,10 +35,10 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>624</x>
-      <y>180</y>
-      <w>396</w>
-      <h>120</h>
+      <x>580</x>
+      <y>200</y>
+      <w>330</w>
+      <h>100</h>
     </coordinates>
     <panel_attributes>MazeState
 --
@@ -51,10 +51,10 @@
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>444</x>
-      <y>216</y>
-      <w>204</w>
-      <h>60</h>
+      <x>430</x>
+      <y>230</y>
+      <w>170</w>
+      <h>50</h>
     </coordinates>
     <panel_attributes>lt=-
 m1=1

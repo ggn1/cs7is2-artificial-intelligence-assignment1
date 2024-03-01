@@ -65,14 +65,17 @@ def a_star(maze):
         'num_nodes_traversed': len(parents)
     }
 
-def __conduct_experiments(sizes, id_nums):
+def __conduct_experiment(sizes, id_nums, load_dir, save_dir):
     """ Solves all mazes as required for assignment 1 experiments. """
     for maze_size in sizes:
         for i in id_nums:
             print(f'Solving {maze_size} x {maze_size} maze {i} ...')
             out_file = f'{i}_astar'
-            out_dir = f'__mazes/size{maze_size}'
-            maze = Maze(matrix=load_maze(path=f"{out_dir}/{i}.json"))
+            out_dir = f'{save_dir}/size{maze_size}'
+            maze = Maze(
+                matrix=load_maze(path=f"{load_dir}/size{maze_size}/{i}.json"),
+                max_gamma=0.99, min_epsilon=1e-6
+            )
             res = solve_maze(
                 solver_type='a-star', solver=a_star, maze=maze, 
                 out_file=out_file, out_dir=out_dir
@@ -87,11 +90,18 @@ def __conduct_experiments(sizes, id_nums):
 
 if __name__ == '__main__':
     """ Triggers solving of all mazes as required for assignment 1 experiments. """
+    load_dir = '__mazes'
+    save_dir = '__mazes'
+
     # Solve 1 maze each of varying sizes with 1 goal.
-    __conduct_experiments(sizes=[7, 15], id_nums=[1])
+    __conduct_experiment(sizes=[7, 15], id_nums=[1], load_dir=load_dir, save_dir=save_dir)
 
     # Solve 3 mazes each of varying sizes with 1 goal.
-    __conduct_experiments(sizes=[21, 61, 101], id_nums=list(range(1, 4)))
+    __conduct_experiment(sizes=[21, 61, 101], id_nums=list(range(1, 4)))
     
     # Solve 5 31x31 mazes with 2 goals.
-    __conduct_experiments(sizes=[31], id_nums=list(range(1, 6)))
+    __conduct_experiment(sizes=[31], id_nums=list(range(1, 6)))
+
+    # # For video demo.
+    # # Solve 1 41 x 41 maze with 1 goal.
+    # __conduct_experiment(sizes=[41], id_nums=[1], load_dir='__demo', save_dir='__demo')

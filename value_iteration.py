@@ -97,7 +97,7 @@ def extract_policy(maze, V, gamma, out_file, out_dir):
     return policy
 
 @track_mem_time
-def value_iteration(maze, out_file, out_dir, gamma, epsilon, max_iters, out_all=True):
+def value_iteration(maze, out_file, out_dir, gamma, epsilon, max_iters=None, out_all=True):
     """
     Implements value iteration comprising iterative state value updates and 
     policy extraction.
@@ -123,11 +123,11 @@ def value_iteration(maze, out_file, out_dir, gamma, epsilon, max_iters, out_all=
         'num_iterations': num_iters
     }
 
-def __conduct_experiments(sizes, id_nums, load_dir, save_dir, epsilon, gamma, max_iters):
+def __conduct_experiment(sizes, id_nums, load_dir, save_dir, epsilon, gamma, max_iters=None, suffix=''):
     for maze_size in sizes:
         for i in id_nums:
             print(f'Solving {maze_size} x {maze_size} maze {i} ...')
-            out_file = f'{i}_valiter'
+            out_file = f'{i}_valiter{"_"+suffix if suffix != "" else ""}'
             out_dir = f'{save_dir}/size{maze_size}'
             maze = Maze(
                 matrix=load_maze(path=f"{load_dir}/size{maze_size}/{i}.json"),
@@ -148,52 +148,62 @@ def __conduct_experiments(sizes, id_nums, load_dir, save_dir, epsilon, gamma, ma
             print('Done!\n')
 
 if __name__ == '__main__':
-    # out_dir = './__temp'
-    # out_file = 'size101_1'
-    # maze = Maze(
-    #     matrix=load_maze(path='./__mazes/size101/1.json'), 
-    #     max_gamma=0.99, min_epsilon=1e-6
-    # )
-    # res = value_iteration(
-    #     maze=maze, out_dir=out_dir, out_file=out_file, 
-    #     gamma=0.99, epsilon=1e-6
-    # )
-    # solution = extract_solution_mdp(
-    #     maze=maze, policy=res['policy'], 
-    #     out_dir=out_dir, out_file=out_file
-    # )
-    # draw_maze(
-    #     maze=maze.matrix, solution=solution,
-    #     save={'dir':out_dir, 'filename': out_file, 'animation':False}
-    # )
-
-    load_dir = '__mazes_old'
+    load_dir = '__mazes'
     save_dir = '__mazes'
 
-    # # Solve 1 maze each of varying small sizes with 1 goal.
-    # __conduct_experiments(
-    #     sizes=[7, 15], id_nums=[1], 
-    #     load_dir=load_dir, save_dir=save_dir,
-    #     epsilon=1e-6, gamma=0.99, max_iters=None
-    # )
+    # Solve 1 maze each of varying small sizes with 1 goal.
+    __conduct_experiment(
+        sizes=[7, 15], id_nums=[1], 
+        load_dir=load_dir, save_dir=save_dir,
+        epsilon=1e-6, gamma=0.99, max_iters=None
+    )
 
-    # # Solve 3 medium sized mazes with 1 goal.
-    # __conduct_experiments(
-    #     sizes=[21], id_nums=list(range(1, 4)), 
-    #     load_dir=load_dir, save_dir=save_dir,
-    #     epsilon=1e-6, gamma=0.99, max_iters=None
-    # )
+    # Solve 3 medium sized mazes with 1 goal.
+    __conduct_experiment(
+        sizes=[21], id_nums=list(range(1, 4)), 
+        load_dir=load_dir, save_dir=save_dir,
+        epsilon=1e-6, gamma=0.99, max_iters=None
+    )
 
-    # # Solve 5 medium sized mazes with 2 goals.
-    # __conduct_experiments(
-    #     sizes=[31], id_nums=list(range(1, 6)), 
-    #     load_dir=load_dir, save_dir=save_dir,
-    #     epsilon=1e-6, gamma=0.99, max_iters=None
-    # )
+    # Solve 5 medium sized mazes with 2 goals.
+    __conduct_experiment(
+        sizes=[31], id_nums=list(range(1, 6)), 
+        load_dir=load_dir, save_dir=save_dir,
+        epsilon=1e-6, gamma=0.99, max_iters=None
+    )
 
-    # # Solve 3 large mazes with 1 goal.
-    # __conduct_experiments(
-    #     sizes=[61, 101], id_nums=list(range(1, 4)), 
-    #     load_dir=load_dir, save_dir=save_dir,
-    #     epsilon=1e-3, gamma=0.98, max_iters=(101**2//2)
-    # )
+    # Solve 3 large mazes with 1 goal.
+    __conduct_experiment(
+        sizes=[61, 101], id_nums=list(range(1, 4)), 
+        load_dir=load_dir, save_dir=save_dir,
+        epsilon=1e-3, gamma=0.98, max_iters=(101**2//2)
+    )
+
+    # Solve 1 61x61 mazes with 1 goal and small epsilon.
+    __conduct_experiment(
+        sizes=[61], id_nums=[1], suffix='epsilon1e-20',
+        load_dir=load_dir, save_dir=save_dir,
+        epsilon=1e-20, gamma=0.98
+    )
+
+    # Solve 1 61x61 mazes with 1 goal and medium epsilon.
+    __conduct_experiment(
+        sizes=[61], id_nums=[1], suffix='epsilon1e-6',
+        load_dir=load_dir, save_dir=save_dir,
+        epsilon=1e-6, gamma=0.98
+    )
+
+    # Solve 1 61x61 mazes with 1 goal and big epsilon.
+    __conduct_experiment(
+        sizes=[61], id_nums=[1], suffix='epsilon1e2',
+        load_dir=load_dir, save_dir=save_dir,
+        epsilon=1e2, gamma=0.98
+    )
+
+    # For video demo.
+    # Solve 1 41 x 41 maze with 1 goal.
+    __conduct_experiment(
+        sizes=[41], id_nums=[1],
+        load_dir='__demo', save_dir='__demo',
+        epsilon=1e-6, gamma=0.99
+    )

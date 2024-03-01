@@ -1,23 +1,26 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <diagram program="umlet" version="15.0.0">
-  <zoom_level>8</zoom_level>
+  <zoom_level>12</zoom_level>
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>88</x>
-      <y>112</y>
-      <w>296</w>
-      <h>232</h>
+      <x>12</x>
+      <y>60</y>
+      <w>444</w>
+      <h>348</h>
     </coordinates>
     <panel_attributes>Maze
 --
-- dim: int
++ dim: int
 + matrix: list&lt;&lt;int&gt;&gt;[dim*2+1, dim*2+1]
 + goals: list&lt;&lt;tuple&lt;&lt;int&gt;&gt;[2]&gt;&gt;[0&lt;=n&lt;dim*2+1]
 + start: tuple&lt;&lt;int&gt;&gt;[2]
 + states: list&lt;&lt;MazeState&gt;&gt;[0&lt;n&lt;dim*2+1, 0&lt;m&lt;dim*2+1]
 + state_positions: list&lt;&lt;tuple&lt;&lt;int&gt;&gt;[2]&gt;&gt;[0&lt;n&lt;(dim*2+1)^2]
 + actions: list&lt;&lt;string&gt;&gt;[4] = ["↑", "→", "↓", "←"]
++ min_epsilon: float
++ max_gamma: float
++ reward: float
 --
 - create_maze(num_goals: int)
 - find_goals(): goals: list&lt;&lt;tuple&lt;&lt;int&gt;&gt;[2]&gt;&gt;[0&lt;=n&lt;dim*2+1]
@@ -32,10 +35,10 @@
   <element>
     <id>UMLClass</id>
     <coordinates>
-      <x>496</x>
-      <y>192</y>
-      <w>264</w>
-      <h>80</h>
+      <x>624</x>
+      <y>180</y>
+      <w>396</w>
+      <h>120</h>
     </coordinates>
     <panel_attributes>MazeState
 --
@@ -48,10 +51,10 @@
   <element>
     <id>Relation</id>
     <coordinates>
-      <x>376</x>
+      <x>444</x>
       <y>216</y>
-      <w>136</w>
-      <h>40</h>
+      <w>204</w>
+      <h>60</h>
     </coordinates>
     <panel_attributes>lt=-
 m1=1

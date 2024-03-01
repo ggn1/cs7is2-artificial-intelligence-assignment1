@@ -1,3 +1,4 @@
+import os
 import time
 import tracemalloc
 import numpy as np
@@ -38,12 +39,12 @@ def values_to_mat_str(v, shape, start, goals):
     mat = np.full(shape, '#').tolist()
     for key, val in v.items():
         if key == start:
-            mat[key[0]][key[1]] = "S: "+str(np.round(val, 2))
+            mat[key[0]][key[1]] = "S: "+str(val)
             continue
         if key in goals:
-            mat[key[0]][key[1]] = "G: "+str(np.round(val, 2))
+            mat[key[0]][key[1]] = "G: "+str(val)
             continue
-        mat[key[0]][key[1]] = str(np.round(val, 2))
+        mat[key[0]][key[1]] = str(val)
     mat = [str(row) for row in mat]
     return "\n".join(mat)
 
@@ -105,11 +106,15 @@ def extract_solution_mdp(maze, policy, out_dir, out_file):
         s = s_prime # s' is s in the next iteration
     return solution
 
-def solve_maze(solver_type, solver, maze, out_dir, out_file, gamma=None, epsilon=None):
+def solve_maze(solver_type, solver, maze, out_dir, out_file, gamma, epsilon=None, max_iters=None):
     """ 
     Solves given maze using given solver and 
     returns path from start to a goal and other metrics. 
     """
+    # If output location does not exist, create it.
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
+        
     # Output maze.
     with open(f'{out_dir}/{out_file}.txt', 'w', encoding='utf-8') as f:
         f.write(f'MAZE:\n{str(maze)}')
@@ -121,7 +126,10 @@ def solve_maze(solver_type, solver, maze, out_dir, out_file, gamma=None, epsilon
         res = solver(maze)
         solution_type = 'search'
     elif solver_type == 'value-iteration':
-        res = solver(maze=maze, out_dir=out_dir, out_file=out_file, gamma=gamma, epsilon=epsilon)
+        res = solver(
+            maze=maze, out_dir=out_dir, out_file=out_file, 
+            gamma=gamma, epsilon=epsilon, max_iters=max_iters
+        )
         solution_type = 'mdp'
     elif solver_type == 'policy-iteration':
         res = solver(maze=maze, out_dir=out_dir, out_file=out_file, gamma=gamma)
@@ -175,3 +183,38 @@ def track_mem_time(solver):
         res['nano_seconds'] = time.time_ns() - time_start 
         return res
     return wrapper
+
+def get_complete_maze_dim_limit(epsilon, gamma, step=1):
+    """ 
+    Given an epsilon = value iteration change threshold,
+    and a gamma = discount factor (0, 1), this function
+    returns the maximum input dimension of a maze <= which, 
+    value iteration will be complete.
+    """
+    dim = 2 # Min dimension possible as per current implementation = 2.
+    reward = 0 # Rewards
+    try:
+        while(reward < float('inf')): # as long as reward != positive overflow
+            wh = ((dim*2)+1)-2 
+            max_steps = wh**2 # max no. of valid states in the maze
+            # Compute a reward that won't be zero even 
+            # if discounted for max_steps no. of steps.
+            reward = epsilon/(gamma**max_steps) 
+            dim += step # Increase dimension by 1.
+        return dim - step - 1 # Return last valid dimension.
+    except ZeroDivisionError: # reward = negative overflow
+        return dim - step - 1 # Return last valid dimension.
+    
+def get_best_reward(dim, epsilon, gamma):
+    """
+    Given an input maze dimension dim,
+    an epsilon = value iteration change threshold, 
+    and a gamma = discount factor (0, 1), this function returns 
+    a reward such that value iteration is complete on 
+    a maze of size (dim*2)+1 even if the optimal path is
+    as long as the no. of valid states in the maze.
+    """
+    wh = (dim*2)+1
+    max_steps = wh**2
+    reward = epsilon/(gamma**(max_steps+1))
+    return reward

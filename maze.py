@@ -3,6 +3,7 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 from maze_state import MazeState
+from utility import get_best_reward
 import matplotlib.animation as animation
 
 def draw_maze(maze, save=None, solution=None, exploration=None, state_values=None):
@@ -140,16 +141,19 @@ def load_maze(path):
 
 class Maze():
     """ Maze. """
-    def __init__(self, start=(1, 1), matrix=None, dim=20, num_goals=1):
+    def __init__(self, min_epsilon, max_gamma, dim=None, start=(1, 1), matrix=None, num_goals=1):
         self.start = start
+        self.min_epsilon = min_epsilon
+        self.max_gamma = max_gamma
         if type(matrix) != type(None): # If the maze is given, and thus is not None ...
             self.matrix = matrix # Set matrix to given one.
             self.goals = self.__find_goals() # Find the goal.
-            self.__dim = (self.matrix.shape[0]-1)//2 # Get dimension input to generate the maze.
+            self.dim = (self.matrix.shape[0]-1)//2 # Get dimension input to generate the maze.
         else:
-            self.__dim = dim # Input dimension = 20 by default => maze size (20*2+1 x 20*2+1).
+            self.dim = dim # Input dimension = 20 by default => maze size (20*2+1 x 20*2+1).
             self.matrix = np.zeros((dim*2+1, dim*2+1)) # Create a grid filled with walls (0s) only.
             self.__create_maze(num_goals=num_goals) # Add spaces, start and goal(s).
+        self.reward = get_best_reward(dim=self.dim, epsilon=self.min_epsilon, gamma=self.max_gamma)
         self.actions = ["↑", "→", "↓", "←"] # Up, right, down, left.
         self.states, self.state_positions = self.__get_states() # Get valid (not walls and inside maze) states. 
 
@@ -180,7 +184,7 @@ class Maze():
                 nx, ny = x + dx, y + dy
                 if (
                     nx >= 0 and ny >= 0 
-                    and nx < self.__dim and ny < self.__dim 
+                    and nx < self.dim and ny < self.dim 
                     and self.matrix[2*nx+1, 2*ny+1] == 0
                 ):
                     self.matrix[2*nx+1, 2*ny+1] = 1
@@ -196,7 +200,7 @@ class Maze():
         # Create goals.
         goals_new = []
         while(len(goals_new) < num_goals):
-            goal = (random.randint(1, 2*self.__dim-1), random.randint(2, 2*self.__dim))
+            goal = (random.randint(1, 2*self.dim-1), random.randint(2, 2*self.dim))
             while ( 
                 self.matrix[goal] != 0 or # If goal is not a wall or 
                 (( # if there is a wall/nothing to the top of the goal
@@ -217,7 +221,7 @@ class Maze():
                     or self.matrix[goal[0]-1, goal[1]] == 0
                 ))
             ): # then, look again ...
-                goal = (random.randint(1, 2*self.__dim-1), random.randint(2, 2*self.__dim))
+                goal = (random.randint(1, 2*self.dim-1), random.randint(2, 2*self.dim))
             self.matrix[goal] = 2 # goal = 2
             goals_new.append(goal)
         self.goals = goals_new
@@ -301,6 +305,6 @@ class Maze():
         up in state s_prime.
         @param s: Current state.
         """
-        if s in self.goals: # If this is the goal, then large positive reward.
-            return (self.matrix.shape[0]**3)
+        if s in self.goals: # If this is the goal, then positive reward.
+            return self.reward
         return 0 # Else, no reward.

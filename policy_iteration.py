@@ -48,7 +48,7 @@ def policy_improvement(maze, V, gamma):
     return policy
 
 @track_mem_time
-def policy_iteration(maze, out_file, out_dir, gamma=0.99):
+def policy_iteration(maze, out_file, out_dir, gamma, max_iters=None):
     # Initially,
     V = {}
     policy = {}
@@ -63,6 +63,10 @@ def policy_iteration(maze, out_file, out_dir, gamma=0.99):
     # for all states between one iteration and the next.
     print('Policy iteration ...')
     while(not converged): 
+        if (not max_iters is None and k >= max_iters):
+            with open(f'{out_dir}/{out_file}.txt', 'a', encoding="utf-8") as f:
+                f.write(f'\n\nMax no. of iterations met.')
+            break
         V = policy_evaluation(maze, V, policy, gamma)
         policy_improved = policy_improvement(maze, V, gamma)
         # If no change in policy after improvement,
@@ -89,18 +93,21 @@ def policy_iteration(maze, out_file, out_dir, gamma=0.99):
         'num_iterations': k
     }
 
-def __conduct_experiments(sizes, id_nums):
+def __conduct_experiments(sizes, id_nums, load_dir, save_dir, gamma, max_iters):
     for maze_size in sizes:
         for i in id_nums:
             print(f'Solving {maze_size} x {maze_size} maze {i} ...')
             out_file = f'{i}_politer'
-            out_dir = f'__mazes/size{maze_size}'
-            maze = Maze(matrix=load_maze(path=f"{out_dir}/{i}.json"))
+            out_dir = f'{save_dir}/size{maze_size}'
+            maze = Maze(
+                matrix=load_maze(path=f"{load_dir}/size{maze_size}/{i}.json"),
+                max_gamma=0.99, min_epsilon=1e-6
+            )
             res = solve_maze(
                 solver_type='policy-iteration',
                 solver=policy_iteration, maze=maze, 
                 out_dir=out_dir, out_file=out_file, 
-                gamma=0.99, epsilon=1e-6
+                gamma=gamma, max_iters=max_iters
             )
             draw_maze(
                 maze=maze.matrix, 
@@ -111,32 +118,33 @@ def __conduct_experiments(sizes, id_nums):
             print('Done!\n')
 
 if __name__ == '__main__':
-    # Solve 1 maze each of varying sizes with 1 goal.
-    __conduct_experiments(sizes=[7, 15], id_nums=[1])
+    load_dir = '__mazes_old'
+    save_dir = '__mazes'
 
-    # Solve 3 mazes each of varying sizes with 1 goal.
-    __conduct_experiments(sizes=[21, 61, 101], id_nums=list(range(1, 4)))
-    
-    # Solve 5 31x31 mazes with 2 goals.
-    __conduct_experiments(sizes=[31], id_nums=list(range(1, 6)))
+    # Solve 1 maze each of varying small sizes with 1 goal.
+    __conduct_experiments(
+        sizes=[7, 15], id_nums=[1], 
+        load_dir=load_dir, save_dir=save_dir,
+        gamma=0.99, max_iters=None
+    )
 
-    # Solve 1 15x15 maze with 1 goal using 3 different gamma values.
-    maze_size = 15
-    for gamma in [1e-5, 0.5, 1]:
-        print(f'Solving {maze_size} x {maze_size} maze 1 gamma = {gamma} ...')
-        out_file = f'1_politer_gamma{gamma}'
-        out_dir = f'__mazes/size{maze_size}'
-        maze = Maze(matrix=load_maze(path=f"{out_dir}/1.json"))
-        res = solve_maze(
-            solver_type='policy-iteration',
-            solver=policy_iteration, maze=maze, 
-            out_dir=out_dir, out_file=out_file, 
-            gamma=gamma
-        )
-        draw_maze(
-            maze=maze.matrix, 
-            solution=res['solution'], 
-            state_values=res['state_values'],
-            save={'dir':out_dir, 'filename':out_file, 'animation':True},
-        )
-        print('Done!\n')
+    # Solve 3 medium sized mazes with 1 goal.
+    __conduct_experiments(
+        sizes=[21], id_nums=list(range(1, 4)), 
+        load_dir=load_dir, save_dir=save_dir,
+        gamma=0.99, max_iters=None
+    )
+
+    # Solve 5 medium sized mazes with 2 goals.
+    __conduct_experiments(
+        sizes=[31], id_nums=list(range(1, 6)), 
+        load_dir=load_dir, save_dir=save_dir,
+        gamma=0.99, max_iters=None
+    )
+
+    # Solve 3 large mazes with 1 goal.
+    __conduct_experiments(
+        sizes=[61, 101], id_nums=list(range(1, 4)), 
+        load_dir=load_dir, save_dir=save_dir,
+        gamma=0.98, max_iters=(101**2//2)
+    )

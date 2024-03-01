@@ -2,7 +2,7 @@ import numpy as np
 from maze import draw_maze, load_maze, Maze
 from utility import track_mem_time, policy_to_mat, values_to_mat, values_to_mat_str, solve_maze, extract_solution_mdp
 
-def update_values(maze, gamma, epsilon, out_file, out_dir, max_iters=None):
+def update_values(maze, gamma, epsilon, out_file, out_dir, max_iters=None, out_all=True):
     """ 
     Performs value iteration and returns values for each state
     and no. of iterations before convergence. 
@@ -49,13 +49,13 @@ def update_values(maze, gamma, epsilon, out_file, out_dir, max_iters=None):
         k += 1 # Update iteration counts.
         
         # Output iteration result.
-        with open(f'{out_dir}/{out_file}.txt', 'a', encoding="utf-8") as f:
-            f.write(f'\n\nIteration {k}:\n')
-            f.write(values_to_mat_str(
-                v=V, shape=maze.matrix.shape,
-                start=maze.start, goals=maze.goals
-            ))
-
+        if out_all or converged:
+            with open(f'{out_dir}/{out_file}.txt', 'a', encoding="utf-8") as f:
+                f.write(f'\n\nIteration {k}:\n')
+                f.write(values_to_mat_str(
+                    v=V, shape=maze.matrix.shape,
+                    start=maze.start, goals=maze.goals
+                ))
     return V, k
 
 def extract_policy(maze, V, gamma, out_file, out_dir):
@@ -97,14 +97,19 @@ def extract_policy(maze, V, gamma, out_file, out_dir):
     return policy
 
 @track_mem_time
-def value_iteration(maze, out_file, out_dir, gamma, epsilon, max_iters):
+def value_iteration(maze, out_file, out_dir, gamma, epsilon, max_iters, out_all=True):
+    """
+    Implements value iteration comprising iterative state value updates and 
+    policy extraction.
+    """
     with open(f'{out_dir}/{out_file}.txt', 'w', encoding="utf-8") as f:
         f.write('Maze:\n')
         f.write(str(maze))
 
     V, num_iters = update_values(
         maze=maze, gamma=gamma, epsilon=epsilon, 
-        out_file=out_file, out_dir=out_dir, max_iters=max_iters
+        out_file=out_file, out_dir=out_dir, max_iters=max_iters,
+        out_all=out_all
     )
 
     policy = extract_policy(

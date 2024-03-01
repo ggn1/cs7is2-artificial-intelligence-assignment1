@@ -48,7 +48,7 @@ def policy_improvement(maze, V, gamma):
     return policy
 
 @track_mem_time
-def policy_iteration(maze, out_file, out_dir, gamma, max_iters=None):
+def policy_iteration(maze, out_file, out_dir, gamma, max_iters=None, out_all=True):
     # Initially,
     V = {}
     policy = {}
@@ -74,18 +74,19 @@ def policy_iteration(maze, out_file, out_dir, gamma, max_iters=None):
         converged = all(policy_improved[s] == policy[s] for s in maze.state_positions)
         policy = policy_improved # Else, prep for next round of evaluation and improvement.
         k += 1
-        with open(f'{out_dir}/{out_file}.txt', 'a', encoding="utf-8") as f:
-            f.write(f'\n\nIteration {k}:\n')
-            f.write(values_to_mat_str(
-                v=V, shape=maze.matrix.shape, 
-                start=maze.start, goals=maze.goals
-            ))
-        with open(f'{out_dir}/{out_file}.txt', 'a', encoding="utf-8") as f:
-            f.write(f'\nPolicy:\n')
-            f.write(str(policy_to_mat(
-                policy=policy, shape=maze.matrix.shape, 
-                start=maze.start, goals=maze.goals
-            )))
+        if (out_all or converged):
+            with open(f'{out_dir}/{out_file}.txt', 'a', encoding="utf-8") as f:
+                f.write(f'\n\nIteration {k}:\n')
+                f.write(values_to_mat_str(
+                    v=V, shape=maze.matrix.shape, 
+                    start=maze.start, goals=maze.goals
+                ))
+            with open(f'{out_dir}/{out_file}.txt', 'a', encoding="utf-8") as f:
+                f.write(f'\nPolicy:\n')
+                f.write(str(policy_to_mat(
+                    policy=policy, shape=maze.matrix.shape, 
+                    start=maze.start, goals=maze.goals
+                )))
 
     return {
         'state_values': values_to_mat(V, maze.matrix.shape),

@@ -11,7 +11,7 @@ def init_mazes(dims, num_mazes, num_goals, folder):
         size = dim*2+1
         print(f'Creating {size} x {size} mazes ...', end=' ')
         for i in range(num_mazes):
-            maze = Maze(dim=dim, num_goals=num_goals)
+            maze = Maze(dim=dim, num_goals=num_goals, min_epsilon=1e-6, max_gamma=0.99)
             out_file = f'{i+1}'
             out_dir = f'{folder}/size{maze.matrix.shape[0]}'
             if not os.path.exists(out_dir): os.makedirs(out_dir)

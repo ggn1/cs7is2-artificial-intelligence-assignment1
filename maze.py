@@ -300,9 +300,8 @@ class Maze():
 
     def R(self, s):
         """ 
-        Rewards function which when given a state s and action a,
-        returns the reward of taking action a in state s to end
-        up in state s_prime.
+        Rewards function which when given a state s,
+        returns the reward of being in that state.
         @param s: Current state.
         """
         if s in self.goals: # If this is the goal, then positive reward.

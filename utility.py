@@ -214,7 +214,7 @@ def get_best_reward(dim, epsilon, gamma):
     a maze of size (dim*2)+1 even if the optimal path is
     as long as the no. of valid states in the maze.
     """
-    wh = (dim*2)+1
-    max_steps = wh**2
-    reward = epsilon/(gamma**(max_steps+1))
+    wh = (dim*2)+1 # width = height of the maze.
+    max_steps = wh**2 # Size of maze = no. of states in the maze.
+    reward = epsilon/(gamma**max_steps)
     return reward

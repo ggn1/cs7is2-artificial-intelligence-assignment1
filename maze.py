@@ -142,6 +142,18 @@ def load_maze(path):
 class Maze():
     """ Maze. """
     def __init__(self, min_epsilon, max_gamma, dim=None, start=(1, 1), matrix=None, num_goals=1):
+        """
+        Initializes a maze.
+        @param min_epsilon: Minimum value of change factor for which value
+                            iteration would be complete on this maze.
+        @param max_gamma: Maximum value of discount factor for which value
+                          iteration would be complete on this maze.
+        @param dim: Input dimension. Size of maze output = (dim*2+1 x dim*2+1).
+        @param matrix: If not None, means that a new maze need not be created and 
+                       that this maze is to be initialized with the given 
+                       matrix. This is to allow loading of previously saved mazes.
+        @param num_goals: No. of goals that this maze should have.
+        """
         self.start = start
         self.min_epsilon = min_epsilon
         self.max_gamma = max_gamma

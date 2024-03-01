@@ -102,6 +102,6 @@ if __name__ == '__main__':
     # Solve 5 31x31 mazes with 2 goals.
     __conduct_experiment(sizes=[31], id_nums=list(range(1, 6)))
 
-    # # For video demo.
-    # # Solve 1 41 x 41 maze with 1 goal.
-    # __conduct_experiment(sizes=[41], id_nums=[1], load_dir='__demo', save_dir='__demo')
+    # For video demo.
+    # Solve 1 41 x 41 maze with 1 goal.
+    __conduct_experiment(sizes=[41], id_nums=[1], load_dir='__demo', save_dir='__demo')

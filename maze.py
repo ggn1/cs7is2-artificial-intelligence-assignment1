@@ -141,7 +141,7 @@ def load_maze(path):
 
 class Maze():
     """ Maze. """
-    def __init__(self, min_epsilon, max_gamma, dim=None, start=(1, 1), matrix=None, num_goals=1):
+    def __init__(self, min_epsilon=1e-6, max_gamma=0.99, dim=None, start=(1, 1), matrix=None, num_goals=1):
         """
         Initializes a maze.
         @param min_epsilon: Minimum value of change factor for which value
@@ -312,7 +312,7 @@ class Maze():
 
     def R(self, s):
         """ 
-        Rewards function which when given a state s,
+        Reward function which when given a state s,
         returns the reward of being in that state.
         @param s: Current state.
         """

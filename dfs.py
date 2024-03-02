@@ -1,3 +1,4 @@
+import argparse
 from queue import LifoQueue
 from maze import Maze, load_maze, draw_maze
 from utility import track_mem_time, solve_maze
@@ -40,7 +41,7 @@ def dfs(maze):
         'num_nodes_traversed': len(parents)
     }
 
-def __conduct_experiment(sizes, id_nums, load_dir, save_dir):
+def __conduct_experiment(sizes, id_nums, load_dir, save_dir, save_anim=True):
     """ Solves all mazes as required for assignment 1 experiments. """
     for maze_size in sizes:
         for i in id_nums:
@@ -59,24 +60,31 @@ def __conduct_experiment(sizes, id_nums, load_dir, save_dir):
                 maze=maze.matrix, 
                 solution=res['solution'], 
                 exploration=list(res['parents'].keys()),
-                save={'dir':out_dir, 'filename':out_file, 'animation':True},
+                save={'dir':out_dir, 'filename':out_file, 'animation':save_anim},
             )
             print('Done!\n')
 
 if __name__ == '__main__':
     """ Triggers solving of all mazes as required for assignment 1 experiments. """
-    load_dir = '__mazes'
-    save_dir = '__mazes'
+    parser = argparse.ArgumentParser(prog='Depth First Search')
+    parser.add_argument('-l', '--load-dir', type=str, help="Directory containing mazes of sizes defined in this file.")
+    parser.add_argument('-s', '--save-dir', type=str, help="Directory in which to store mazes.")
+    parser.add_argument('-a', '--save-anim', action='store_true', help='Save solution animation.')
+    args = parser.parse_args()
+
+    load_dir = args.load_dir
+    save_dir = args.save_dir
+    save_anim = args.save_anim
 
     # Solve 1 maze each of varying sizes with 1 goal.
-    __conduct_experiment(sizes=[7, 15], id_nums=[1], load_dir=load_dir, save_dir=save_dir)
+    __conduct_experiment(sizes=[7, 15], id_nums=[1], load_dir=load_dir, save_dir=save_dir, save_anim=save_anim)
 
     # Solve 3 mazes each of varying sizes with 1 goal.
-    __conduct_experiment(sizes=[21, 61, 101], id_nums=list(range(1, 4)))
+    __conduct_experiment(sizes=[21, 61, 101], id_nums=list(range(1, 4)), load_dir=load_dir, save_dir=save_dir, save_anim=save_anim)
     
     # Solve 5 31x31 mazes with 2 goals.
-    __conduct_experiment(sizes=[31], id_nums=list(range(1, 6)))
+    __conduct_experiment(sizes=[31], id_nums=list(range(1, 6)), load_dir=load_dir, save_dir=save_dir, save_anim=save_anim)
 
-    # For video demo.
-    # Solve 1 41 x 41 maze with 1 goal.
-    __conduct_experiment(sizes=[41], id_nums=[1], load_dir='__demo', save_dir='__demo')
+    # # For video demo.
+    # # Solve 1 41 x 41 maze with 1 goal.
+    # __conduct_experiment(sizes=[41], id_nums=[1], load_dir='__demo', save_dir='__demo', save_anim=save_anim)

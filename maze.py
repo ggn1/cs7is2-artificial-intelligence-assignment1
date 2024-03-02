@@ -215,7 +215,10 @@ class Maze():
             goal = (random.randint(1, 2*self.dim-1), random.randint(2, 2*self.dim))
             while ( 
                 self.matrix[goal] != 0 or # If goal is not a wall or 
-                (( # if there is a wall/nothing to the top of the goal
+                not ( # if goal is on the outer wall or
+                    1 <= goal[0] < self.matrix.shape[0]-1 and
+                    1 <= goal[1] < self.matrix.shape[1]-1
+                ) or (( # if there is a wall/nothing to the top of the goal
                     goal[1]-1 < 0
                     or goal[1]-1 >= self.matrix.shape[1]
                     or self.matrix[goal[0], goal[1]-1] == 0

@@ -1,6 +1,7 @@
 import random
+import argparse
 from maze import draw_maze, load_maze, Maze
-from utility import policy_to_mat, values_to_mat, values_to_mat_str, solve_maze, output_result, track_mem_time
+from utility import policy_to_mat, values_to_mat, values_to_mat_str, solve_maze, track_mem_time
 
 def policy_evaluation(maze, V, policy, gamma):
     """ Evaluates given policy and returns value of each state based on it. """
@@ -94,7 +95,7 @@ def policy_iteration(maze, out_file, out_dir, gamma, max_iters=None, out_all=Tru
         'num_iterations': k
     }
 
-def __conduct_experiment(sizes, id_nums, load_dir, save_dir, gamma, max_iters=None, suffix=''):
+def __conduct_experiment(sizes, id_nums, load_dir, save_dir, gamma, max_iters=None, suffix='', save_anim=True):
     for maze_size in sizes:
         for i in id_nums:
             print(f'Solving {maze_size} x {maze_size} maze {i} ...')
@@ -114,67 +115,74 @@ def __conduct_experiment(sizes, id_nums, load_dir, save_dir, gamma, max_iters=No
                 maze=maze.matrix, 
                 solution=res['solution'], 
                 state_values=res['state_values'],
-                save={'dir':out_dir, 'filename':out_file, 'animation':True},
+                save={'dir':out_dir, 'filename':out_file, 'animation':save_anim},
             )
             print('Done!\n')
 
 if __name__ == '__main__':
-    load_dir = '__mazes'
-    save_dir = '__mazes'
+    parser = argparse.ArgumentParser(prog='Policy Iteration')
+    parser.add_argument('-l', '--load-dir', type=str, help="Directory containing mazes of sizes defined in this file.")
+    parser.add_argument('-s', '--save-dir', type=str, help="Directory in which to store mazes.")
+    parser.add_argument('-a', '--save-anim', action='store_true', help='Save solution animation.')
+    args = parser.parse_args()
+
+    load_dir = args.load_dir
+    save_dir = args.save_dir
+    save_anim = args.save_anim
 
     # Solve 1 maze each of varying small sizes with 1 goal.
     __conduct_experiment(
         sizes=[7, 15], id_nums=[1], 
         load_dir=load_dir, save_dir=save_dir,
-        gamma=0.99, max_iters=None
+        gamma=0.99, max_iters=None, save_anim=save_anim
     )
 
     # Solve 3 medium sized mazes with 1 goal.
     __conduct_experiment(
         sizes=[21], id_nums=list(range(1, 4)), 
         load_dir=load_dir, save_dir=save_dir,
-        gamma=0.99, max_iters=None
+        gamma=0.99, max_iters=None, save_anim=save_anim
     )
 
     # Solve 5 medium sized mazes with 2 goals.
     __conduct_experiment(
         sizes=[31], id_nums=list(range(2, 5)), 
         load_dir=load_dir, save_dir=save_dir,
-        gamma=0.99, max_iters=None
+        gamma=0.99, max_iters=None, save_anim=save_anim
     )
 
     # Solve 3 large mazes with 1 goal.
     __conduct_experiment(
         sizes=[61, 101], id_nums=list(range(1, 4)), 
         load_dir=load_dir, save_dir=save_dir,
-        gamma=0.98
+        gamma=0.98, max_iters=(101**2)//2, save_anim=save_anim
     )
 
     # Solve 1 61x61 maze with big gamma.
     __conduct_experiment(
         sizes=[61], id_nums=[1], suffix='gamma0.9',
         load_dir=load_dir, save_dir=save_dir,
-        gamma=0.9
+        gamma=0.9, save_anim=save_anim
     )
 
     # Solve 1 61x61 maze with medium gamma.
     __conduct_experiment(
         sizes=[61], id_nums=[1], suffix='gamma0.5',
         load_dir=load_dir, save_dir=save_dir,
-        gamma=0.5
+        gamma=0.5, save_anim=save_anim
     )
 
     # Solve 1 61x61 maze with small gamma.
     __conduct_experiment(
         sizes=[61], id_nums=[1], suffix='gamma0.1',
         load_dir=load_dir, save_dir=save_dir,
-        gamma=0.1
+        gamma=0.1, save_anim=save_anim
     )
 
-    # For video demo.
-    # Solve 1 41 x 41 maze with 1 goal.
-    __conduct_experiment(
-        sizes=[41], id_nums=[1],
-        load_dir='__demo', save_dir='__demo',
-        gamma=0.99
-    )
+    # # For video demo.
+    # # Solve 1 41 x 41 maze with 1 goal.
+    # __conduct_experiment(
+    #     sizes=[41], id_nums=[1],
+    #     load_dir='__demo', save_dir='__demo',
+    #     gamma=0.99, save_anim=save_anim
+    # )

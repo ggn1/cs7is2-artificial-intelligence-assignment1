@@ -16,11 +16,14 @@ def solve_dfs(dim, num_goals):
         os.makedirs(out_dir)
     out_file = datetime.now().strftime("%m%d%Y%H%M%S")
     maze = Maze(dim=dim, num_goals=num_goals) # Generate maze.
+    with open(f"{out_dir}/{out_file}.txt", 'w') as f:
+        f.write(f'MAZE:\n{str(maze)}')
     res = dfs(maze=maze)
     if res['goal'] is None: # No goal found => no solution.
         print("No solution found.")
     else:
         solution = reconstruct_path(res['parents'], start=maze.start, goal=res['goal'])
+        res['solution'] = solution
         draw_maze(
             maze=maze.matrix, solution=solution, exploration=list(res['parents'].keys()),
             save={'dir':out_dir, 'filename':out_file, 'animation':False}
@@ -34,11 +37,14 @@ def solve_bfs(dim, num_goals):
         os.makedirs(out_dir)
     out_file = datetime.now().strftime("%m%d%Y%H%M%S")
     maze = Maze(dim=dim, num_goals=num_goals) # Generate maze.
+    with open(f"{out_dir}/{out_file}.txt", 'w') as f:
+        f.write(f'MAZE:\n{str(maze)}')
     res = bfs(maze=maze)
     if res['goal'] is None: # No goal found => no solution.
         print("No solution found.")
     else:
         solution = reconstruct_path(res['parents'], start=maze.start, goal=res['goal'])
+        res['solution'] = solution
         draw_maze(
             maze=maze.matrix, solution=solution, exploration=list(res['parents'].keys()),
             save={'dir':out_dir, 'filename':out_file, 'animation':False}
@@ -52,11 +58,14 @@ def solve_astar(dim, num_goals):
         os.makedirs(out_dir)
     out_file = datetime.now().strftime("%m%d%Y%H%M%S")
     maze = Maze(dim=dim, num_goals=num_goals) # Generate maze.
+    with open(f"{out_dir}/{out_file}.txt", 'w') as f:
+        f.write(f'MAZE:\n{str(maze)}')
     res = a_star(maze=maze)
     if res['goal'] is None: # No goal found => no solution.
         print("No solution found.")
     else:
         solution = reconstruct_path(res['parents'], start=maze.start, goal=res['goal'])
+        res['solution'] = solution
         draw_maze(
             maze=maze.matrix, solution=solution, exploration=list(res['parents'].keys()),
             save={'dir':out_dir, 'filename':out_file, 'animation':False}
@@ -78,6 +87,7 @@ def solve_valiter(dim, num_goals, gamma, epsilon, max_iters):
         maze=maze, policy=res['policy'], 
         out_dir=out_dir, out_file=out_file
     )
+    res['solution'] = solution
     draw_maze(
         maze=maze.matrix, solution=solution, state_values=res['state_values'],
         save={'dir':out_dir, 'filename':out_file, 'animation':False}
@@ -99,6 +109,7 @@ def solve_politer(dim, num_goals, gamma, max_iters):
         maze=maze, policy=res['policy'], 
         out_dir=out_dir, out_file=out_file
     )
+    res['solution'] = solution
     draw_maze(
         maze=maze.matrix, solution=solution, state_values=res['state_values'],
         save={'dir':out_dir, 'filename':out_file, 'animation':False}

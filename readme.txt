@@ -1,6 +1,15 @@
 Please run the following commands to run the experiments 
 mentioned in the report involving each of the 5 algorithms.
 
+################## REQUIRED PYTHON PACKAGES ################
+In order to run every following command, please ensure all 
+python packages mentioned in the requirement.txt file is
+installed and accessible.
+The packages required are (specific versions 
+are mentioned in requirements.txt if needed):
+    # matplotlib
+    # numpy
+
 ########### TO CREATE A RANDOM MAZE AND SOLVE IT ###########
 This is the fastest way to see the algorithms working on a
 randomly generated maze of your chosen size. It is advised to
@@ -10,16 +19,18 @@ possible. While bigger sizes are possible, solvers will be slower,
 especially Value Iteration and Policy Iteration.
 
 A given input dim will generate mazes of size (dim*2+1 x dim*2+1).
-That is, dim = 2 => maze size = (5 x 5) and dim = 50 => maze size (101 x 101).
+That is, dim = 2 => maze size = (5 x 5) and 
+dim = 50 => maze size (101 x 101).
 
-To learn more about what command line arguments are possible, please refer to
-file "solve_random_maze.py".
+To learn more about what command line arguments are possible, 
+please refer to file "solve_random_maze.py".
 
 Once each of the following commands are run, output may 
-be found in a folder "out_<name of solver>" that gets created in the
-current working directory which will contain a file in the format
-dayMonthYearHoursMinsSecs with the latest run result. The output 
-here will be a .png file and a .txt file.
+be found in a folder "out_<name of solver>" that gets created in 
+the current working directory which will contain a file in the 
+format "dayMonthYearHoursMinsSecs" with the latest run result. 
+The output  here will be a .png file and a .txt file with the same
+name.
 
 To solve a random maze using DFS:
     # Run > python solve_random_maze.py -dim 10 -ng 1 -s "dfs"
@@ -43,7 +54,10 @@ To solve a random maze using Policy Iteration:
         * discount factor = 0.99
         * max iterations limit = None
 
-Here, -dim = dimension, -ng = no. of goals in the maze and -s = solver to use.
+Here:
+    # -dim = dimension
+    # -ng = no. of goals in the maze
+    # -s = solver to use
 
 ########## TO RUN ALL EXPERIMENTS FROM THE REPORT ##########
 
@@ -63,8 +77,8 @@ in the same directory as where the code files are.
 This is so that output in the "__mazes" folder which is what is 
 referenced in the report, does not get overwritten.
 Also ensure that this directory contains the "__mazes" folder with 
-contents as submitted in the zip file. This folder contains mazes that 
-were used for the experiments as mentioned in the report.
+contents as submitted in the zip file. This folder contains mazes 
+that were used for the experiments as mentioned in the report.
 
 To run A* search experiments:
     python a_star.py --load-dir __mazes --save-dir output
@@ -85,25 +99,30 @@ If you'd like to generate 16 new mazes to run the experiments
 on fresh mazes, simply create a new folder where you'd like to
 save your new random mazes and then, run the following:
     python init_mazes.py --dst-dir "path/to/your/new/folder"
-Please note that this will generate 20 31x31 files from which 15 have to be
-manually deleted and remaining ones will have to be renamed to have ids 1 to 5.
+Please note that this will generate 20 31x31 files from which 
+15 have to be manually deleted and remaining ones will have to
+be renamed to have ids 1 to 5.
 
 If you'd like to try any of the other functions on their own:
-    # Please just import them and give it a go in the "playground.ipynb" python notebook file. 
-    # That said, please note that the draw_maze() function does not display animations
-      and solution path on the maze in a notebook environment as matplotlib.animation
-      does not support this natively.
-    # The playground.ipynb file is where experimentation with single functions
-      was done during development.
-    # Some of these experiments are still there and are commented out.
+    # Please just import them and give it a go in 
+      the "playground.ipynb" python notebook file. 
+    # That said, please note that the draw_maze() function does 
+      not display animations and solution path on the maze in 
+      a notebook environment as matplotlib.animation does not 
+      support this natively.
+    # The playground.ipynb file is where experimentation with 
+      single functions was done during development.
+    # Some of these experiments are still there and are 
+      commented out.
 
 ################## DEMONSTRATION VIDEO ##################
 
 Please find demo video here: https://youtu.be/k1Deg2nf1EE
 
-Kindly note that the demo was made prior to facilitating sending of 
-command line arguments and the solve_random_maze.py file.
+Kindly note that the demo was made prior to facilitating 
+sending of command line arguments and the solve_random_maze.py 
+file.
 
-######################## GITHUB ########################
+######################## GITHUB #########################
 Please find the GitHub repository for this project here:
 https://github.com/ggn1/cs7is2-artificial-intelligence-assignment1

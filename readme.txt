@@ -103,3 +103,7 @@ Please find demo video here: https://youtu.be/k1Deg2nf1EE
 
 Kindly note that the demo was made prior to facilitating sending of 
 command line arguments and the solve_random_maze.py file.
+
+######################## GITHUB ########################
+Please find the GitHub repository for this project here:
+https://github.com/ggn1/cs7is2-artificial-intelligence-assignment1
